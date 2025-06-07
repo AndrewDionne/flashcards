@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -62,7 +62,6 @@
     <button onclick="prevCard()">Previous</button>
     <button onclick="nextCard()">Next</button>
   </div>
-
 <script>
   const cards = [
     { number: 1, word: "jeden", pron: "YEH-den" },
@@ -97,8 +96,8 @@
   }
 
   function playAudio(number) {
-    const audio = new Audio(`audio/${number}.mp3`);
-
+  const audio = new Audio(`audio/${number}.mp3`);
+  }
 
   function renderCard() {
     const card = cards[currentIndex];
@@ -127,5 +126,6 @@
 
   renderCard();
 </script>
+
 </body>
 </html>
