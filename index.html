@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polish Numbers Flip Cards</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        function playAudio(number) {
+            var audio = new Audio('audio/' + number + '.mp3');
+            audio.play();
+        }
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; }
+        .card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; width: 200px; height: 300px; margin: 10px; perspective: 1000px; }
+        .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card:hover .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .card-front { background: #fff; }
+        .card-back { background: #f1f1f1; transform: rotateY(180deg); }
+        .number { font-size: 3em; }
+        .polish-word { font-size: 2em; margin-bottom: 10px; }
+        .pronunciation { font-size: 1.2em; color: #555; }
+        .play-button { background: #007BFF; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="card-inner">
+            <div class="card-front">
+                <div class="number">1</div>
+            </div>
+            <div class="card-back">
+                <div>
+                    <div class="polish-word">jeden</div>
+                    <div class="pronunciation">YEH-den</div>
+                    <button class="play-button" onclick="playAudio(1)">Play</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">2</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dwa</div>
+                <div class="pronunciation">DVA</div>
+                <button class="play-button" onclick="playAudio(2)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">3</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">trzy</div>
+                <div class="pronunciation">TSH-ih</div>
+                <button class="play-button" onclick="playAudio(3)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">4</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">cztery</div>
+                <div class="pronunciation">CHTEH-rih</div>
+                <button class="play-button" onclick="playAudio(4)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">5</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">pięć</div>
+                <div class="pronunciation">PYENCH</div>
+                <button class="play-button" onclick="playAudio(5)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">6</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">sześć</div>
+                <div class="pronunciation">SHESHCH</div>
+                <button class="play-button" onclick="playAudio(6)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">7</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">siedem</div>
+                <div class="pronunciation">SHYEH-dem</div>
+                <button class="play-button" onclick="playAudio(7)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">8</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">osiem</div>
+                <div class="pronunciation">OH-shyem</div>
+                <button class="play-button" onclick="playAudio(8)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">9</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dziewięć</div>
+                <div class="pronunciation">JYEH-vyench</div>
+                <button class="play-button" onclick="playAudio(9)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">10</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dziesięć</div>
+                <div class="pronunciation">JYEH-shench</div>
+                <button class="play-button" onclick="playAudio(10)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">11</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">jedenaście</div>
+                <div class="pronunciation">yeh-deh-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(11)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">12</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dwanaście</div>
+                <div class="pronunciation">dva-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(12)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">13</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">trzynaście</div>
+                <div class="pronunciation">tshih-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(13)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">14</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">czternaście</div>
+                <div class="pronunciation">chtehr-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(14)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">15</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">piętnaście</div>
+                <div class="pronunciation">pyent-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(15)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">16</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">szesnaście</div>
+                <div class="pronunciation">shesh-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(16)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">17</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">siedemnaście</div>
+                <div class="pronunciation">shyeh-dem-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(17)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">18</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">osiemnaście</div>
+                <div class="pronunciation">oh-shyem-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(18)">Play</button>
+            </div>
+        </div>
+    </div> 
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">19</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dziewiętnaście</div>
+                <div class="pronunciation">jyeh-vyen-NASH-chye</div>
+                <button class="play-button" onclick="playAudio(19)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-inner">
+        <div class="card-front">
+            <div class="number">20</div>
+        </div>
+        <div class="card-back">
+            <div>
+                <div class="polish-word">dwadzieścia</div>
+                <div class="pronunciation">dva-JESH-chya</div>
+                <button class="play-button" onclick="playAudio(20)">Play</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
