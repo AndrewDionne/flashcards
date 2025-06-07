@@ -132,10 +132,12 @@
       renderCard();
     }
 
-    function playAudio(number) {
-      const audio = new Audio(`${number}.mp3`);
-      audio.play();
-    }
+   function playAudio(number) {
+  const audio = new Audio(`audio/${number}.mp3`);
+  audio.play().catch(error => {
+    console.error("Audio playback failed:", error);
+  });
+}
 
     function renderCard() {
       const card = cards[currentIndex];
