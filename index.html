@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polish Number Flashcards</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+    }
+    .card {
+      width: 80vw;
+      max-width: 300px;
+      height: 200px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 2rem;
+      padding: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .pronunciation {
+      font-size: 1rem;
+      margin-top: 0.5em;
+    }
+    button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+    }
+    .navigation {
+      margin-top: 2em;
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="flashcard" onclick="flipCard()">
+    <div id="card-content">1</div>
+  </div>
+
+  <div class="navigation">
+    <button onclick="prevCard()">Previous</button>
+    <button onclick="nextCard()">Next</button>
+  </div>
+
+<script>
+  const cards = [
+    { number: 1, word: "jeden", pron: "YEH-den" },
+    { number: 2, word: "dwa", pron: "dvah" },
+    { number: 3, word: "trzy", pron: "tshih" },
+    { number: 4, word: "cztery", pron: "CHTEH-rih" },
+    { number: 5, word: "pięć", pron: "pyench" },
+    { number: 6, word: "sześć", pron: "sheshch" },
+    { number: 7, word: "siedem", pron: "SHYEH-dem" },
+    { number: 8, word: "osiem", pron: "OH-shyem" },
+    { number: 9, word: "dziewięć", pron: "JYEH-vyench" },
+    { number: 10, word: "dziesięć", pron: "JYEH-shench" },
+    { number: 11, word: "jedenaście", pron: "yeh-deh-NASH-tyeh" },
+    { number: 12, word: "dwanaście", pron: "dvah-NASH-tyeh" },
+    { number: 13, word: "trzynaście", pron: "tshih-NASH-tyeh" },
+    { number: 14, word: "czternaście", pron: "chtehr-NASH-tyeh" },
+    { number: 15, word: "piętnaście", pron: "pyent-NASH-tyeh" },
+    { number: 16, word: "szesnaście", pron: "shes-NASH-tyeh" },
+    { number: 17, word: "siedemnaście", pron: "shyedem-NASH-tyeh" },
+    { number: 18, word: "osiemnaście", pron: "ohshyem-NASH-tyeh" },
+    { number: 19, word: "dziewiętnaście", pron: "jyevyent-NASH-tyeh" },
+    { number: 20, word: "dwadzieścia", pron: "dvah-JESH-chyah" }
+  ];
+
+  let currentIndex = 0;
+  let flipped = false;
+  const cardContent = document.getElementById("card-content");
+
+  function flipCard() {
+    flipped = !flipped;
+    renderCard();
+  }
+
+  let currentAudio;
+  function playAudio(number) {
+    currentAudio = new Audio(`audio/${number}.mp3`);
+    currentAudio.play().catch(error => {
+      console.error("Audio playback failed:", error);
+    });
+  }
+
+  function renderCard() {
+    const card = cards[currentIndex];
+    if (!flipped) {
+      cardContent.innerHTML = `${card.number}`;
+    } else {
+      cardContent.innerHTML = `
+        <div>${card.word}</div>
+        <div class="pronunciation">${card.pron}</div>
+        <button onclick="event.stopPropagation(); playAudio(${card.number})">🔊 Play</button>
+      `;
+    }
+  }
+
+  function nextCard() {
+    if (currentIndex < cards.length - 1) currentIndex++;
+    flipped = false;
+    renderCard();
+  }
+
+  function prevCard() {
+    if (currentIndex > 0) currentIndex--;
+    flipped = false;
+    renderCard();
+  }
+
+  renderCard();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+
+{
+    "name": "Polish Numbers Flip Cards",
+    "short_name": "Polish Numbers",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "description": "Flip cards to learn Polish numbers with pronunciation.",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+}
