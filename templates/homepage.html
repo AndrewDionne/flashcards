@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flashcard Sets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #ffffff;
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .set-title {
+            font-size: 1.2em;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .set-title:hover {
+            text-decoration: underline;
+        }
+        .meta {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .actions {
+            margin-top: 30px;
+        }
+        .actions a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .actions a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Your Flashcard Sets</h1>
+
+    {% if sets %}
+        <ul>
+           {% for set in sets %}
+    <li>
+        <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
+            ▶ {{ set.name }}
+        </a><br>
+        <span class="meta">{{ set.count }} cards</span><br>
+        <a class="meta" href="/publish?set_name={{ set.name }}">🔗 Publish "{{ set.name }}"</a>
+    </li>
+{% endfor %}
+        </ul>
+    {% else %}
+        <p>No flashcard sets found yet.</p>
+    {% endif %}
+
+    <div class="actions">
+        <a href="/create">➕ Create New Set</a>
+        <a href="/publish">🚀 Publish to GitHub</a>
+    </div>
+</body>
+</html>
+
