@@ -196,7 +196,7 @@ def index():
     function playAudio(filename) {{
             const audio = document.getElementById("audioPlayer");
             const source = document.getElementById("audioSource");
-            const newSrc = `./audio/${{filename}}`;
+            const newSrc = `/static/${{setName}}/audio/${{filename}}`;
             if (source.src !== location.href + newSrc) {{
                 source.src = newSrc;
                 audio.load();
