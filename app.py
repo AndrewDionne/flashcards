@@ -6,6 +6,7 @@ import re
 from git import Repo
 import webbrowser
 import threading
+import shutil
 
 app = Flask(__name__)
 
@@ -99,13 +100,20 @@ def index():
             font-size: 1.1em;
             text-align: center;
         }}
-        .card-back audio {{
+        .card-back button {{
             margin-top: 10px;
-            width: 100%;
+            padding: 8px 16px;
+            font-size: 1em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
         }}
         .nav-buttons {{
             display: flex;
             gap: 15px;
+            margin-top: 30px;
         }}
         button {{
             padding: 10px 20px;
@@ -155,7 +163,8 @@ def index():
             cardBack.innerHTML = `
                 <p>${{entry.phrase}}</p>
                 <p><em>${{entry.pronunciation}}</em></p>
-                <audio controls>
+                <button onclick="playAudio('${filename}')">▶️ Play Audio</button>
+                <audio id="audioPlayer" preload="auto">
                     <source src="/static/{set_name}/audio/${{filename}}" type="audio/mpeg">
                     Your browser does not support the audio element.
                 </audio>
@@ -163,6 +172,14 @@ def index():
             prevBtn.disabled = currentIndex === 0;
             nextBtn.disabled = currentIndex === cards.length - 1;
             card.classList.remove("flipped");
+        }}
+
+        function playAudio(filename) {{
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {{
+                audio.currentTime = 0;
+                audio.play();
+            }}
         }}
 
         prevBtn.addEventListener("click", () => {{
@@ -187,6 +204,7 @@ def index():
 </body>
 </html>
 """
+
 
         # Save generated flashcards HTML
         output_html_path = os.path.join(output_dir, "flashcards.html")
@@ -233,20 +251,28 @@ def publish():
     if request.method == "POST":
         set_name = request.form["set_name"]
         commit_message = request.form.get("commit_message", f"Add flashcard set {set_name}")
-        repo_path = os.getcwd()  # Your Git repo path
+        repo_path = os.getcwd()
         output_path = os.path.join("output", set_name)
 
         try:
+            # Copy the set's HTML to the root as index.html (for GitHub Pages)
+            src_html = os.path.join(output_path, "flashcards.html")
+            dst_html = os.path.join("index.html")
+            shutil.copyfile(src_html, dst_html)
+
+            # Commit and push using GitPython
             repo = Repo(repo_path)
             repo.git.add(A=True)
             repo.index.commit(commit_message)
             origin = repo.remote(name="origin")
             origin.push()
+
             return f"<h3 style='color:green;'>✅ Successfully pushed '{set_name}' to GitHub.</h3><a href='/'>⬅ Back to homepage</a>"
         except Exception as e:
             return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
+
     else:
-        # For GET: populate dropdown with available sets
+        # GET: show publish page with dropdown of available sets
         sets = sorted([
             d for d in os.listdir("output")
             if os.path.isdir(os.path.join("output", d))
