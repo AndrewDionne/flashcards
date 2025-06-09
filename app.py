@@ -168,7 +168,7 @@ def index():
             <p><em>${{entry.pronunciation}}</em></p>
             <button onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <audio id="audioPlayer" preload="auto">
-                <source src="/static/{set_name}/audio/${{filename}}" type="audio/mpeg">
+                <source src="audio/${filename}" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
         `;
