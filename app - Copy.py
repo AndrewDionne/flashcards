@@ -10,11 +10,6 @@ import shutil
 
 app = Flask(__name__)
 
-# Serve audio files from the 'audio' folder
-@app.route('/audio/<filename>')
-def serve_audio(filename):
-    return send_from_directory('audio', filename)
-
 def sanitize_filename(text):
     # Replace all non-alphanumeric chars with underscore for safe filenames
     return re.sub(r'[^a-zA-Z0-9]', '_', text)
@@ -31,114 +26,39 @@ def index():
             for entry in data:
                 if not all(k in entry for k in ("phrase", "pronunciation", "meaning")):
                     raise ValueError("Each entry must have 'phrase', 'pronunciation', and 'meaning' keys.")
-        except Exception as e:
-            return f"<h2 style='color:red;'>❌ Error: {str(e)}</h2>", 400
 
-        # Create output dirs
-        audio_dir = os.path.join("static", set_name, "audio")
-        output_dir = os.path.join("output", set_name)
-        os.makedirs(audio_dir, exist_ok=True)
-        os.makedirs(output_dir, exist_ok=True)
+            # Convert the data list to JSON string for embedding in JS
+            cards_json = json.dumps(data, ensure_ascii=False)
 
-        # Generate audio
-        for i, entry in enumerate(data):
-            phrase = entry["phrase"]
-            filename = f"{i}_{sanitize_filename(phrase)}.mp3"
-            filepath = os.path.join(audio_dir, filename)
-            if not os.path.exists(filepath):
-                tts = gTTS(text=phrase, lang="pl")
-                tts.save(filepath)
+            # Prepare directories for audio and output
+            audio_dir = os.path.join("static", set_name, "audio")
+            output_dir = os.path.join("output", set_name)
+            os.makedirs(audio_dir, exist_ok=True)
+            os.makedirs(output_dir, exist_ok=True)
 
+            # Generate audio files for each phrase if not already present
+            for i, entry in enumerate(data):
+                phrase = entry["phrase"]
+                filename = f"{i}_{sanitize_filename(phrase)}.mp3"
+                filepath = os.path.join(audio_dir, filename)
+                if not os.path.exists(filepath):
+                    tts = gTTS(text=phrase, lang="pl")
+                    tts.save(filepath)
 
-
-        # HTML head + card layout
-        full_html = f"""
+            # Now build the HTML page string with cards_json embedded
+            full_html = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>{set_name} Flashcards</title>
+    <title>Flashcards</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0; padding: 20px;
-            background-color: #f8f9fa;
-            display: flex; flex-direction: column; align-items: center;
-        }}
-        h1 {{
-            font-size: 1.5em; margin-bottom: 20px;
-        }}
-        .card {{
-            width: 90vw; max-width: 350px; height: 220px;
-            perspective: 1000px; margin-bottom: 20px;
-        }}
-        .card-inner {{
-            width: 100%; height: 100%;
-            position: relative;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }}
-        .card.flipped .card-inner {{
-            transform: rotateY(180deg);
-        }}
-        .card-front, .card-back {{
-            position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4em;
-            padding: 20px;
-            backface-visibility: hidden;
-        }}
-        .card-front {{
-            background: #ffffff;
-            font-weight: bold;
-            text-align: center;
-        }}
-        .card-back {{
-            background: #e9ecef;
-            transform: rotateY(180deg);
-            flex-direction: column;
-            font-size: 1.1em;
-            text-align: center;
-        }}
-        .card-back button {{
-            margin-top: 10px;
-            padding: 8px 16px;
-            font-size: 1em;
-            background-color: #28a745;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-        }}
-        .nav-buttons {{
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }}
-        button {{
-            padding: 10px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 8px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-        }}
-        button:disabled {{
-            background-color: #aaa;
-            cursor: default;
-        }}
+        /* Your CSS here */
     </style>
 </head>
 <body>
-    <h1>{set_name} Flashcards</h1>
+    <h1>Polish Flashcards</h1>
     <div class="card" id="cardContainer">
         <div class="card-inner" id="cardInner">
             <div class="card-front" id="cardFront"></div>
@@ -149,47 +69,41 @@ def index():
         <button id="prevBtn">Previous</button>
         <button id="nextBtn">Next</button>
     </div>
+
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
     </audio>
 
-"""
-        # JavaScript part (add after HTML body layout)
-        html_script = f"""
-<script>
-    const cards = {json.dumps(data)};
-    const setName = "{set_name}";
-    let currentIndex = 0;
-    const cardFront = document.getElementById("cardFront");
-    const cardBack = document.getElementById("cardBack");
-    const card = document.getElementById("cardContainer");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
+    <script>
+        const cards = {cards_json};
 
-    function sanitizeFilename(text) {{
-        return text.replace(/[^a-zA-Z0-9]/g, "_");
-    }}
+        let currentIndex = 0;
+        const cardFront = document.getElementById("cardFront");
+        const cardBack = document.getElementById("cardBack");
+        const card = document.getElementById("cardContainer");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
 
-    function updateCard() {{
-        const entry = cards[currentIndex];
-        const filename = `${{currentIndex}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
-        cardFront.textContent = entry.meaning;
-        cardBack.innerHTML = `
-            <p>${{entry.phrase}}</p>
-            <p><em>${{entry.pronunciation}}</em></p>
-            <button onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
-            <audio id="audioPlayer" preload="auto">
-                <source id="audioSource" src="" type="audio/mpeg" />
-        Your browser does not support the audio element.
-    </audio>
-        `;
-        prevBtn.disabled = currentIndex === 0;
-        nextBtn.disabled = currentIndex === cards.length - 1;
-        card.classList.remove("flipped");
-    }}
+        function sanitizeFilename(text) {{
+            return text.replace(/[^a-zA-Z0-9]/g, "_");
+        }}
 
-    function playAudio(filename) {{
+        function updateCard() {{
+            const entry = cards[currentIndex];
+            const filename = `${{currentIndex}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
+            cardFront.textContent = entry.meaning;
+            cardBack.innerHTML = `
+                <p>${{entry.phrase}}</p>
+                <p><em>${{entry.pronunciation}}</em></p>
+                <button onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
+            `;
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === cards.length - 1;
+            card.classList.remove("flipped");
+        }}
+
+        function playAudio(filename) {{
             const audio = document.getElementById("audioPlayer");
             const source = document.getElementById("audioSource");
             const newSrc = `./audio/${{filename}}`;
@@ -201,48 +115,49 @@ def index():
             audio.play();
         }}
 
-    prevBtn.addEventListener("click", () => {{
-        if (currentIndex > 0) {{
-            currentIndex--;
-            updateCard();
-        }}
-    }});
+        prevBtn.addEventListener("click", () => {{
+            if (currentIndex > 0) {{
+                currentIndex--;
+                updateCard();
+            }}
+        }});
 
-    nextBtn.addEventListener("click", () => {{
-        if (currentIndex < cards.length - 1) {{
-            currentIndex++;
-            updateCard();
-        }}
-    }});
+        nextBtn.addEventListener("click", () => {{
+            if (currentIndex < cards.length - 1) {{
+                currentIndex++;
+                updateCard();
+            }}
+        }});
 
-    card.addEventListener("click", (event) => {{
-        if (
-            event.target.tagName.toLowerCase() === 'audio' ||
-            event.target.closest('audio') ||
-            event.target.tagName.toLowerCase() === 'button'
-        ) {{
-            return;
-        }}
-        card.classList.toggle("flipped");
-    }});
+        card.addEventListener("click", (event) => {{
+            if (
+                event.target.tagName.toLowerCase() === 'audio' ||
+                event.target.closest('audio') ||
+                event.target.tagName.toLowerCase() === 'button'
+            ) {{
+                return;
+            }}
+            card.classList.toggle("flipped");
+        }});
 
-    updateCard();
-</script>
+        updateCard();
+    </script>
 </body>
 </html>
 """
 
-        return full_html + html_script
+            # Write the HTML file
+            output_html_path = os.path.join(output_dir, "flashcards.html")
+            with open(output_html_path, "w", encoding="utf-8") as f:
+                f.write(full_html)
 
-        # Write to output
-        output_html_path = os.path.join(output_dir, "flashcards.html")
-        with open(output_html_path, "w", encoding="utf-8") as f:
-            f.write(full_html)
+            return redirect(f"/output/{set_name}/flashcards.html")
 
-        return redirect(f"/output/{set_name}/flashcards.html")
+        except Exception as e:
+            return f"<h2 style='color:red;'>❌ Error: {str(e)}</h2>", 400
 
+    # For GET requests, just render the input form page
     return render_template("index.html")
-
 
 
 # Serve generated HTML and static files
