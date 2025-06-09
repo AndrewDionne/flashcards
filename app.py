@@ -391,6 +391,40 @@ def publish():
     else:
         return render_template("publish.html", sets=sorted(os.listdir("output")))
 
+# TO DELETE 
+@app.route('/delete_set/<set_name>', methods=['POST'])
+def delete_set(set_name):
+    import time
+    repo_path = os.path.abspath(os.path.dirname(__file__))  # More robust than hardcoding
+    output_dir = os.path.join(repo_path, "output")
+
+    print("Available folders in output:")
+    print(os.listdir(output_dir))
+
+    # Match folder by prefix
+    folders = os.listdir(output_dir)
+    target_folder = next((f for f in folders if f.startswith(set_name)), None)
+
+    if target_folder:
+        set_folder = os.path.join(output_dir, target_folder)
+        shutil.rmtree(set_folder)
+        print(f"Deleted set: {set_folder}")
+
+        repo = Repo(repo_path)
+        repo.git.add(update=True)
+        repo.index.commit(f"Deleted flashcard set: {set_name}")
+        origin = repo.remote(name='origin')
+        origin.push()
+        print(f"Pushed deletion of {set_name} to GitHub.")
+        time.sleep(2)
+    else:
+        print(f"No folder starting with {set_name} found.")
+
+    return redirect(url_for('homepage'))
+
+
+
+
 def open_browser():
     webbrowser.open("http://127.0.0.1:5000")
 
