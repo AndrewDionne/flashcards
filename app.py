@@ -19,6 +19,7 @@ def sanitize_filename(text):
     # Replace all non-alphanumeric chars with underscore for safe filenames
     return re.sub(r'[^a-zA-Z0-9]', '_', text)
 #this is the code for generating the flash cards
+# This is the code for generating the flash cards
 @app.route("/create", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -37,8 +38,10 @@ def index():
         # Create output dirs
         audio_dir = os.path.join("static", set_name, "audio")
         output_dir = os.path.join("output", set_name)
+        sets_dir = os.path.join("sets", set_name)
         os.makedirs(audio_dir, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
+        os.makedirs(sets_dir, exist_ok=True)
 
         # Generate audio
         for i, entry in enumerate(data):
@@ -49,7 +52,9 @@ def index():
                 tts = gTTS(text=phrase, lang="pl")
                 tts.save(filepath)
 
-
+        # Write JSON file for consistency / export
+        with open(os.path.join(sets_dir, "data.json"), "w", encoding="utf-8") as json_out:
+            json.dump(data, json_out, ensure_ascii=False, indent=2)
 
         # HTML head + card layout
         full_html = f"""
@@ -153,7 +158,6 @@ def index():
         <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
     </audio>
-
 """
         # JavaScript part (add after HTML body layout)
         html_script = f"""
@@ -232,12 +236,10 @@ def index():
 </html>
 """
 
-        return full_html + html_script
-
         # Write to output
         output_html_path = os.path.join(output_dir, "flashcards.html")
         with open(output_html_path, "w", encoding="utf-8") as f:
-            f.write(full_html)
+            f.write(full_html + html_script)
 
         return redirect(f"/output/{set_name}/flashcards.html")
 
@@ -245,29 +247,39 @@ def index():
 
 
 
+
 # Serve generated HTML and static files
 @app.route("/")
 def homepage():
     output_root = "output"
-    sets = []
+    static_root = "static"
+    sets_dict = {}
 
+    # Step 1: Collect sets from output/
     if os.path.exists(output_root):
         for set_name in sorted(os.listdir(output_root)):
             set_dir = os.path.join(output_root, set_name)
-            data_file = os.path.join(set_dir, "flashcards.html")
-            if os.path.isdir(set_dir) and os.path.exists(data_file):
-                try:
-                    # Estimate number of cards by counting audio files
-                    audio_path = os.path.join("static", set_name, "audio")
-                    card_count = len([
-                        f for f in os.listdir(audio_path)
-                        if f.endswith(".mp3")
-                    ]) if os.path.exists(audio_path) else 0
-                    sets.append({"name": set_name, "count": card_count})
-                except Exception:
-                    sets.append({"name": set_name, "count": "?"})  # fallback
+            if os.path.isdir(set_dir):
+                sets_dict[set_name] = {"name": set_name, "count": "?"}
 
+    # Step 2: Count audio files from static/
+    if os.path.exists(static_root):
+        for set_name in sorted(os.listdir(static_root)):
+            audio_path = os.path.join(static_root, set_name, "audio")
+            if os.path.isdir(audio_path):
+                card_count = len([
+                    f for f in os.listdir(audio_path)
+                    if f.endswith(".mp3")
+                ])
+                if set_name not in sets_dict:
+                    sets_dict[set_name] = {"name": set_name, "count": card_count}
+                else:
+                    sets_dict[set_name]["count"] = card_count  # update count if known
+
+    sets = list(sets_dict.values())
     return render_template("homepage.html", sets=sets)
+
+
 
 @app.route("/output/<path:filename>")
 def serve_output_file(filename):
@@ -396,20 +408,26 @@ def publish():
 def delete_set(set_name):
     import time
     repo_path = os.path.abspath(os.path.dirname(__file__))  # More robust than hardcoding
-    output_dir = os.path.join(repo_path, "output")
 
-    print("Available folders in output:")
-    print(os.listdir(output_dir))
+# Paths to delete
+    paths_to_delete = [
+        os.path.join(repo_path, "output", set_name),
+        os.path.join(repo_path, "static", set_name),
+        os.path.join(repo_path, "sets", set_name)
+    ]
 
-    # Match folder by prefix
-    folders = os.listdir(output_dir)
-    target_folder = next((f for f in folders if f.startswith(set_name)), None)
+    deleted_anything = False
 
-    if target_folder:
-        set_folder = os.path.join(output_dir, target_folder)
-        shutil.rmtree(set_folder)
-        print(f"Deleted set: {set_folder}")
+    for path in paths_to_delete:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+            print(f"Deleted: {path}")
+            deleted_anything = True
+        else:
+            print(f"Not found (skipped): {path}")
 
+    if deleted_anything:
+        # Git commit + push
         repo = Repo(repo_path)
         repo.git.add(update=True)
         repo.index.commit(f"Deleted flashcard set: {set_name}")
@@ -417,8 +435,6 @@ def delete_set(set_name):
         origin.push()
         print(f"Pushed deletion of {set_name} to GitHub.")
         time.sleep(2)
-    else:
-        print(f"No folder starting with {set_name} found.")
 
     return redirect(url_for('homepage'))
 
