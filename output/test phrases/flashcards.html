@@ -53,13 +53,20 @@
             font-size: 1.1em;
             text-align: center;
         }
-        .card-back audio {
+        .card-back button {
             margin-top: 10px;
-            width: 100%;
+            padding: 8px 16px;
+            font-size: 1em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
         }
         .nav-buttons {
             display: flex;
             gap: 15px;
+            margin-top: 30px;
         }
         button {
             padding: 10px 20px;
@@ -109,7 +116,8 @@
             cardBack.innerHTML = `
                 <p>${entry.phrase}</p>
                 <p><em>${entry.pronunciation}</em></p>
-                <audio controls>
+                <button onclick="playAudio('$11_Nie_rozumiem.mp3')">▶️ Play Audio</button>
+                <audio id="audioPlayer" preload="auto">
                     <source src="/static/test phrases/audio/${filename}" type="audio/mpeg">
                     Your browser does not support the audio element.
                 </audio>
@@ -117,6 +125,14 @@
             prevBtn.disabled = currentIndex === 0;
             nextBtn.disabled = currentIndex === cards.length - 1;
             card.classList.remove("flipped");
+        }
+
+        function playAudio(filename) {
+            const audio = document.getElementById("audioPlayer");
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play();
+            }
         }
 
         prevBtn.addEventListener("click", () => {

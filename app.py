@@ -249,36 +249,45 @@ def serve_output_file(filename):
 @app.route("/publish", methods=["GET", "POST"])
 def publish():
     if request.method == "POST":
-        set_name = request.form["set_name"]
-        commit_message = request.form.get("commit_message", f"Add flashcard set {set_name}")
-        repo_path = os.getcwd()
-        output_path = os.path.join("output", set_name)
-
         try:
-            # Copy the set's HTML to the root as index.html (for GitHub Pages)
-            src_html = os.path.join(output_path, "flashcards.html")
-            dst_html = os.path.join("index.html")
-            shutil.copyfile(src_html, dst_html)
+            # 1. Create "docs" folder structure for GitHub Pages
+            if not os.path.exists("docs"):
+                os.makedirs("docs/sets")
 
-            # Commit and push using GitPython
-            repo = Repo(repo_path)
+            sets = sorted([
+                d for d in os.listdir("output")
+                if os.path.isdir(os.path.join("output", d))
+                and os.path.exists(os.path.join("output", d, "flashcards.html"))
+            ])
+
+            # 2. Copy all sets' HTML pages into docs/sets/<set_name>/flashcards.html
+            for set_name in sets:
+                dst_set_dir = os.path.join("docs", "sets", set_name)
+                os.makedirs(dst_set_dir, exist_ok=True)
+                src_html = os.path.join("output", set_name, "flashcards.html")
+                dst_html = os.path.join(dst_set_dir, "flashcards.html")
+                shutil.copyfile(src_html, dst_html)
+
+            # 3. Build homepage with links to each flashcard set
+            homepage_html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Flashcard Sets</title></head><body><h1>Flashcard Sets</h1><ul>"
+            for set_name in sets:
+                homepage_html += f"<li><a href='sets/{set_name}/flashcards.html'>{set_name}</a></li>"
+            homepage_html += "</ul></body></html>"
+
+            with open(os.path.join("docs", "index.html"), "w", encoding="utf-8") as f:
+                f.write(homepage_html)
+
+            # 4. Commit and push
+            repo = Repo(os.getcwd())
             repo.git.add(A=True)
-            repo.index.commit(commit_message)
-            origin = repo.remote(name="origin")
-            origin.push()
+            repo.index.commit("📘 Publish flashcard sets with homepage")
+            repo.remote(name="origin").push()
 
-            return f"<h3 style='color:green;'>✅ Successfully pushed '{set_name}' to GitHub.</h3><a href='/'>⬅ Back to homepage</a>"
+            return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
         except Exception as e:
-            return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
-
+            return f"<h3 style='color:red;'>❌ Git publish failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
     else:
-        # GET: show publish page with dropdown of available sets
-        sets = sorted([
-            d for d in os.listdir("output")
-            if os.path.isdir(os.path.join("output", d))
-            and os.path.exists(os.path.join("output", d, "flashcards.html"))
-        ])
-        return render_template("publish.html", sets=sets)
+        return render_template("publish.html", sets=sorted(os.listdir("output")))
 
 def open_browser():
     webbrowser.open("http://127.0.0.1:5000")
