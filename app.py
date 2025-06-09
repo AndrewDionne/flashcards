@@ -194,16 +194,18 @@ def index():
     }}
 
     function playAudio(filename) {{
-            const audio = document.getElementById("audioPlayer");
-            const source = document.getElementById("audioSource");
-            const newSrc = `../../static/${{setName}}/audio/${{filename}}`;
-            if (source.src !== location.href + newSrc) {{
-                source.src = newSrc;
-                audio.load();
-            }}
-            audio.currentTime = 0;
-            audio.play();
-        }}
+        const audio = document.getElementById("audioPlayer");
+        const source = document.getElementById("audioSource");
+
+        const basePath = window.location.pathname.split("/sets/")[0] || "/";
+        const newSrc = `${{basePath}}static/${{setName}}/audio/${{filename}}`;
+
+        source.src = newSrc;
+        audio.load();
+        audio.currentTime = 0;
+        audio.play();
+}}
+
 
     prevBtn.addEventListener("click", () => {{
         if (currentIndex > 0) {{

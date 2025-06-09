@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>v7 Flashcards</title>
+    <title>V9 Flashcards</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
         body {
@@ -84,7 +84,7 @@
     </style>
 </head>
 <body>
-    <h1>v7 Flashcards</h1>
+    <h1>V9 Flashcards</h1>
     <div class="card" id="cardContainer">
         <div class="card-inner" id="cardInner">
             <div class="card-front" id="cardFront"></div>
@@ -102,7 +102,7 @@
 
 <script>
     const cards = [{"phrase": "Dzi\u0119kuj\u0119", "pronunciation": "jen-KOO-yeh", "meaning": "Thank you"}, {"phrase": "Przepraszam", "pronunciation": "psheh-PRAH-shahm", "meaning": "Sorry/Excuse me"}, {"phrase": "Prosz\u0119 powt\u00f3rzy\u0107!", "pronunciation": "PROH-sheh pohv-TOO-zheetch", "meaning": "Please repeat!"}, {"phrase": "Co to znaczy", "pronunciation": "tso toh ZNAH-chee", "meaning": "What does it mean?"}, {"phrase": "Tak", "pronunciation": "tahk", "meaning": "Yes"}, {"phrase": "Nie", "pronunciation": "nyeh", "meaning": "No"}, {"phrase": "Nie wiem", "pronunciation": "nyeh VYEM", "meaning": "I don't know"}, {"phrase": "Prosz\u0119 napisa\u0107!", "pronunciation": "PROH-sheh nah-PEE-sahtch", "meaning": "Please write it down!"}, {"phrase": "Gdzie jest toaleta", "pronunciation": "g-jeh yest toh-ah-LEH-tah", "meaning": "Where is the toilet?"}, {"phrase": "Prosz\u0119 m\u00f3wi\u0107 wolniej", "pronunciation": "PROH-sheh MOO-veech VOL-nyeh", "meaning": "Please speak more slowly"}, {"phrase": "Mam pytanie", "pronunciation": "mahm pih-TAH-nyeh", "meaning": "I have a question"}, {"phrase": "Nie rozumiem", "pronunciation": "nyeh roh-ZOO-myem", "meaning": "I don't understand"}];
-    const setName = "v7";
+    const setName = "V9";
     let currentIndex = 0;
     const cardFront = document.getElementById("cardFront");
     const cardBack = document.getElementById("cardBack");
@@ -141,6 +141,8 @@
                 source.src = newSrc;
                 audio.load();
             }
+            source.src = newSrc;
+            audio.load();
             audio.currentTime = 0;
             audio.play();
         }
