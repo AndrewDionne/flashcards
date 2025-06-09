@@ -168,7 +168,7 @@ def index():
             <p><em>${{entry.pronunciation}}</em></p>
             <button onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <audio id="audioPlayer" preload="auto">
-                <source src="audio/${filename}" type="audio/mpeg">
+                <source src="./audio/${filename}" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
         `;
@@ -284,7 +284,6 @@ def publish():
                 if os.path.exists(src_audio):
                     shutil.copytree(src_audio, dst_audio, dirs_exist_ok=True)
 
-            # ✅ THIS WHOLE BLOCK WAS UNINDENTED — now it's correct:
             homepage_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
