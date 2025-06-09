@@ -197,13 +197,22 @@ def index():
         const audio = document.getElementById("audioPlayer");
         const source = document.getElementById("audioSource");
 
-        const basePath = window.location.pathname.split("/sets/")[0] || "/";
-        const newSrc = `/static/${{setName}}/audio/${{filename}}`;
+        // Detect if we are on GitHub Pages by checking hostname
+        let base = "";
+        if (window.location.hostname === "andrewdionne.github.io") {{
+            const repoName = window.location.pathname.split("/")[1];
+            base = repoName ? `/${{repoName}}` : "";
+    }}
 
+
+        const newSrc = `${{base}}/static/${{setName}}/audio/${{filename}}`;
+
+        console.log("Playing:", newSrc); // optional debug line
         source.src = newSrc;
         audio.load();
         audio.currentTime = 0;
         audio.play();
+
 }}
 
 
