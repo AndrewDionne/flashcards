@@ -70,21 +70,13 @@ def index():
             margin: 0; padding: 20px;
             background-color: #f8f9fa;
             display: flex; flex-direction: column; align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box;
-            overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
         }}
         h1 {{
             font-size: 1.5em; margin-bottom: 20px;
         }}
         .card {{
-             width: 100%;
-            max-width: 350px;
-            height: 220px;
-            perspective: 1000px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
+            width: 90vw; max-width: 350px; height: 220px;
+            perspective: 1000px; margin-bottom: 20px;
         }}
         .card-inner {{
             width: 100%; height: 100%;
