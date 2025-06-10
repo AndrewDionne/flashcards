@@ -193,26 +193,26 @@ def index():
         card.classList.remove("flipped");
     }}
 
-    function playAudio(filename) {{
+        function playAudio(filename) {{
         const audio = document.getElementById("audioPlayer");
         const source = document.getElementById("audioSource");
 
-        // Detect if we are on GitHub Pages by checking hostname
-        let base = "";
+        let newSrc = "";
+
         if (window.location.hostname === "andrewdionne.github.io") {{
-            const repoName = window.location.pathname.split("/")[1];
-            base = repoName ? `/${{repoName}}` : "";
+        // GitHub Pages path: /WSPOL-Names/sets/setName/audio/filename
+            const repo = window.location.pathname.split("/")[1]; // e.g., WSPOL-Names
+            newSrc = `/${{repo}}/sets/${{setName}}/audio/${{filename}}`;
+    }} else {{
+        // Local Flask path: /static/setName/audio/filename
+            newSrc = `/static/${{setName}}/audio/${{filename}}`;
     }}
 
-
-        const newSrc = `${{base}}/static/${{setName}}/audio/${{filename}}`;
-
-        console.log("Playing:", newSrc); // optional debug line
-        source.src = newSrc;
-        audio.load();
-        audio.currentTime = 0;
-        audio.play();
-
+    console.log("Playing:", newSrc);
+    source.src = newSrc;
+    audio.load();
+    audio.currentTime = 0;
+    audio.play();
 }}
 
 
