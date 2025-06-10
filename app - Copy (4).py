@@ -79,7 +79,7 @@ def index():
             font-size: 1.5em; margin-bottom: 20px;
         }}
         .card {{
-            width: 100%;
+             width: 100%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
@@ -134,7 +134,6 @@ def index():
             display: flex;
             gap: 15px;
             margin-top: 30px;
-            justify-content: center;
         }}
         button {{
             padding: 10px 20px;
@@ -162,9 +161,6 @@ def index():
     <div class="nav-buttons">
         <button id="prevBtn">Previous</button>
         <button id="nextBtn">Next</button>
-    </div>
-    <div class="nav-buttons">
-    <button onclick="goHome()">🏠 Home</button>
     </div>
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
@@ -204,15 +200,7 @@ def index():
         nextBtn.disabled = currentIndex === cards.length - 1;
         card.classList.remove("flipped");
     }}
-        function goHome() {{
-            // Go to the root of the repo on GitHub Pages or localhost
-            if (window.location.hostname === "andrewdionne.github.io") {{
-                const repo = window.location.pathname.split("/")[1]; // e.g., WSPOL-Names
-                window.location.href = `/${{repo}}/`;
-            }} else {{
-                window.location.href = "/";
-            }}
-    }}
+
         function playAudio(filename) {{
         const audio = document.getElementById("audioPlayer");
         const source = document.getElementById("audioSource");
