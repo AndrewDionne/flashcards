@@ -99,6 +99,7 @@ def index():
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
+            margin-left: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -131,6 +132,11 @@ def index():
             background: #ffffff;
             font-weight: bold;
             text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }}
         .card-back {{
             background: #e9ecef;
@@ -138,6 +144,11 @@ def index():
             flex-direction: column;
             font-size: 1.1em;
             text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }}
         .card-back button {{
             margin-top: 10px;
