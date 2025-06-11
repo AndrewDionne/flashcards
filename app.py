@@ -76,16 +76,35 @@ def index():
             overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
         }}
         h1 {{
-            font-size: 1.5em; margin-bottom: 20px;
-        }}
-        .card {{
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            position: relative;
             width: 100%;
+            text-align: center;
+        }}
+        
+        .home-btn {{
+            position: absolute;
+            right: 20px;
+            top: 0;
+            font-size: 1.4em;
+            background: none;
+            border: none;
+            cursor: pointer;
+            }}
+
+        .card {{
+            width: 90%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             box-sizing: border-box;
         }}
+
         .card-inner {{
             width: 100%; height: 100%;
             position: relative;
@@ -144,6 +163,7 @@ def index():
             background-color: #007bff;
             color: white;
             cursor: pointer;
+            flex: 1;
         }}
         button:disabled {{
             background-color: #aaa;
@@ -152,7 +172,10 @@ def index():
     </style>
 </head>
 <body>
-    <h1>{set_name} Flashcards</h1>
+    <h1>
+    {{set_name}} Flashcards
+        <button class="home-btn" onclick="window.location.href='/'">🏠</button>
+    </h1>
     <div class="card" id="cardContainer">
         <div class="card-inner" id="cardInner">
             <div class="card-front" id="cardFront"></div>
@@ -162,10 +185,7 @@ def index():
     <div class="nav-buttons">
         <button id="prevBtn">Previous</button>
         <button id="nextBtn">Next</button>
-    </div>
-    <div class="nav-buttons">
-    <button onclick="goHome()">🏠 Home</button>
-    </div>
+    
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
