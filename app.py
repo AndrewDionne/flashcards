@@ -99,7 +99,6 @@ def index():
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
-            margin-left: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -112,6 +111,9 @@ def index():
             transition: transform 0.6s;
             transform-style: preserve-3d;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+
         }}
         .card.flipped .card-inner {{
             transform: rotateY(180deg);
@@ -120,7 +122,6 @@ def index():
             position: absolute;
             width: 100%; height: 100%;
             border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -165,6 +166,7 @@ def index():
             gap: 15px;
             margin-top: 30px;
             justify-content: center;
+            width: 150px;
         }}
         button {{
             padding: 10px 20px;
@@ -237,7 +239,7 @@ def index():
     }}
         function goHome() {{
             // Go to the root of the repo on GitHub Pages or localhost
-            if (window.location.hostname === "andrewdionne.github.io") {{
+            if (window.location.hostname === "andrewdionne.github.io/flashcards") {{
                 const repo = window.location.pathname.split("/")[1]; // e.g., WSPOL-Names
                 window.location.href = `/${{repo}}/`;
             }} else {{
