@@ -85,7 +85,7 @@ def index():
         
         .home-btn {{
             position: absolute;
-            right: 20px;
+            right: 0px;
             top: 0;
             font-size: 1.4em;
             background: none;
@@ -173,7 +173,7 @@ def index():
 </head>
 <body>
     <h1>
-    {{set_name}} Flashcards
+    {set_name} Flashcards
         <button class="home-btn" onclick="window.location.href='/'">🏠</button>
     </h1>
     <div class="card" id="cardContainer">
