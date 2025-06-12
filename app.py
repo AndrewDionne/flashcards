@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, redirect, send_from_directory, url_for, jsonify
 import os
 import json
-from gtts import gTTS
 import re
-from git import Repo
-import webbrowser
-import threading
 import shutil
+import threading
+import webbrowser
+from gtts import gTTS
+from git import Repo
 
 app = Flask(__name__)
 
@@ -558,10 +558,17 @@ def delete_sets():
     data = request.get_json()
     sets_to_delete = data.get('sets', [])
 
+    if not sets_to_delete:
+        return jsonify(success=False, message="No sets specified."), 400
+
     repo_path = os.path.abspath(os.path.dirname(__file__))
     deleted_anything = False
 
     for set_name in sets_to_delete:
+        # Basic sanitization: prevent directory traversal attacks
+        if '..' in set_name or '/' in set_name or '\\' in set_name:
+            continue
+
         paths_to_delete = [
             os.path.join(repo_path, "output", set_name),
             os.path.join(repo_path, "static", set_name),
@@ -573,10 +580,13 @@ def delete_sets():
                 deleted_anything = True
 
     if deleted_anything:
-        repo = Repo(repo_path)
-        repo.git.add(update=True)
-        repo.index.commit(f"Deleted flashcard sets: {', '.join(sets_to_delete)}")
-        repo.remote(name="origin").push()
+        try:
+            repo = Repo(repo_path)
+            repo.git.add(update=True)
+            repo.index.commit(f"Deleted flashcard sets: {', '.join(sets_to_delete)}")
+            repo.remote(name="origin").push()
+        except Exception as e:
+            return jsonify(success=False, message="Git push failed", error=str(e)), 500
 
     return jsonify(success=True)
 
