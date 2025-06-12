@@ -94,28 +94,28 @@ def index():
             }}
 
         .card {{
-            width: 90%;
+            width: 100%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
-            margin-left: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin-left: auto;
+            margin-right: auto;
             box-sizing: border-box;
         }}
 
         .card-inner {{
             width: 100%; 
             height: 100%;
-            margin-right: 10px;
             position: relative;
             transition: transform 0.6s;
             transform-origin: center;
             transform-style: preserve-3d;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             border-radius: 12px;
 
         }}
@@ -126,11 +126,8 @@ def index():
             position: absolute;
             width: 100%; height: 100%;
             border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4em;
             padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             backface-visibility: hidden;
         }}
         .card-front {{
@@ -144,6 +141,7 @@ def index():
             align-items: center;
         }}
         .card-back {{
+            min-height: 100%;
             background: #e9ecef;
             transform: rotateY(180deg);
             flex-direction: column;
@@ -152,6 +150,7 @@ def index():
             word-wrap: break-word;
             text-align: center;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }}
