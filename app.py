@@ -99,7 +99,7 @@ def index():
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
-            margin-right: 10px;
+            margin-left: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -109,7 +109,7 @@ def index():
         .card-inner {{
             width: 100%; 
             height: 100%;
-            margin-left: 10px;
+            margin-right: 10px;
             position: relative;
             transition: transform 0.6s;
             transform-origin: center;
