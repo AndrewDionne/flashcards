@@ -171,15 +171,19 @@ def index():
             gap: 15px;
             margin-top: 30px;
             justify-content: center;
-            width: 150px;
+            width: 180px;
+            height: 30px;
             max-width: 350px;
         }}
         button {{
-            padding: 10px 20px;
+            padding: 4px 8px;
             font-size: 1em;
             border: none;
             border-radius: 8px;
             background-color: #007bff;
+            width: 150px           /* smaller fixed width */
+            height: 10px;           /* smaller fixed height */
+            border-radius: 4px;     /* rounded corners */
             color: white;
             cursor: pointer;
             flex: 1;
