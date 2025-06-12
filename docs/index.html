@@ -48,6 +48,25 @@
     .set-card a:hover {
       text-decoration: underline;
     }
+    .set-checkbox {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      transform: scale(1.3);
+    }
+    .actions {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .actions button {
+      background-color: #dc3545;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
     @media (hover: none) {
       .set-card:hover {
         transform: none;
@@ -61,129 +80,35 @@
   <div class="card-grid">
 
     <div class="set-card">
-      <a href="sets/12/flashcards.html">12</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/Ax8/flashcards.html">Ax8</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/V3/flashcards.html">V3</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/V9/flashcards.html">V9</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax1/flashcards.html">ax1</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax2/flashcards.html">ax2</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax3/flashcards.html">ax3</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax4/flashcards.html">ax4</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax5/flashcards.html">ax5</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax6/flashcards.html">ax6</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax7/flashcards.html">ax7</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/ax9/flashcards.html">ax9</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases2/flashcards.html">test phrases2</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases3/flashcards.html">test phrases3</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases4/flashcards.html">test phrases4</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases5/flashcards.html">test phrases5</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases6/flashcards.html">test phrases6</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases7/flashcards.html">test phrases7</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/test phrases8/flashcards.html">test phrases8</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/v1.1/flashcards.html">v1.1</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/v10/flashcards.html">v10</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/v6/flashcards.html">v6</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/v7/flashcards.html">v7</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/v8/flashcards.html">v8</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx1/flashcards.html">vx1</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx2/flashcards.html">vx2</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx3/flashcards.html">vx3</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx4/flashcards.html">vx4</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx5/flashcards.html">vx5</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx6/flashcards.html">vx6</a>
-    </div>
-    
-    <div class="set-card">
-      <a href="sets/vx8/flashcards.html">vx8</a>
+        <input type="checkbox" class="set-checkbox" value="test1">
+        <a href="sets/test1/flashcards.html">test1</a>
     </div>
     
   </div>
+  <div class="actions">
+    <button onclick="deleteSelected()">🗑️ Delete Selected</button>
+  </div>
+
+  <script>
+    function deleteSelected() {{
+      const checkboxes = document.querySelectorAll('.set-checkbox:checked');
+      if (checkboxes.length === 0) {{
+        alert('Please select at least one set to delete.');
+        return;
+      }}
+      const setsToDelete = Array.from(checkboxes).map(cb => cb.value);
+      if (!confirm(`Are you sure you want to delete ${setsToDelete.length} set(s)?`)) return;
+
+      fetch('/delete_sets', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ sets: setsToDelete }})
+      }})
+      .then(res => {{
+        if (res.ok) location.reload();
+        else alert("Something went wrong deleting sets.");
+      }});
+    }}
+  </script>
 </body>
 </html>
