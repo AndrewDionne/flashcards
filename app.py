@@ -186,7 +186,7 @@ def index():
             border-radius: 4px;     /* rounded corners */
             color: white;
             cursor: pointer;
-            flex: 1;
+            
         }}
         button:disabled {{
             background-color: #aaa;
