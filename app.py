@@ -94,11 +94,12 @@ def index():
             }}
 
         .card {{
-            width: 100%;
+            width: 90%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
             margin-bottom: 20px;
+            margin-right: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -108,7 +109,7 @@ def index():
         .card-inner {{
             width: 100%; 
             height: 100%;
-            margin: 0 auto;
+            margin-left: 10px;
             position: relative;
             transition: transform 0.6s;
             transform-origin: center;
@@ -191,7 +192,7 @@ def index():
 <body>
     <h1>
     {set_name} Flashcards
-        <button class="home-btn" onclick="window.location.href='/'">🏠</button>
+        <button class="home-btn" onclick="goHome()">🏠</button>
     </h1>
     <div class="card" id="cardContainer">
         <div class="card-inner" id="cardInner">
@@ -242,14 +243,14 @@ def index():
         card.classList.remove("flipped");
     }}
         function goHome() {{
-            // Go to the root of the repo on GitHub Pages or localhost
-            if (window.location.hostname === "andrewdionne.github.io/flashcards") {{
-                const repo = window.location.pathname.split("/")[1]; // e.g., WSPOL-Names
-                window.location.href = `/${{repo}}/`;
-            }} else {{
-                window.location.href = "/";
-            }}
-    }}
+        const pathParts = window.location.pathname.split("/");
+        const repo = pathParts[1]; // repo name comes right after domain
+        if (window.location.hostname === "andrewdionne.github.io" && repo) {{
+        window.location.href = `/${{repo}}/`;
+        }} else {{
+            window.location.href = "/";
+        }}
+}}
         function playAudio(filename) {{
         const audio = document.getElementById("audioPlayer");
         const source = document.getElementById("audioSource");
