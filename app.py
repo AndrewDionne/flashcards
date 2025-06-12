@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_from_directory, url_for
+from flask import Flask, render_template, request, redirect, send_from_directory, url_for, jsonify
 import os
 import json
 from gtts import gTTS
@@ -98,6 +98,7 @@ def index():
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
+            margin-top: 20px;
             margin-bottom: 20px;
             margin-left: auto;
             margin-right: auto;
@@ -132,7 +133,8 @@ def index():
         }}
         .card-front {{
             background: #ffffff;
-            font-weight: bold;
+            font-size: 1.1em;
+            font-weight: normal;
             text-align: center;
             word-wrap: break-word;
             text-align: center;
@@ -430,6 +432,25 @@ def publish():
     .set-card a:hover {{
       text-decoration: underline;
     }}
+    .set-checkbox {{
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      transform: scale(1.3);
+    }}
+    .actions {{
+      margin-top: 40px;
+      text-align: center;
+    }}
+    .actions button {{
+      background-color: #dc3545;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }}
     @media (hover: none) {{
       .set-card:hover {{
         transform: none;
@@ -446,12 +467,38 @@ def publish():
             for set_name in sets:
                 homepage_html += f"""
     <div class="set-card">
-      <a href="sets/{set_name}/flashcards.html">{set_name}</a>
+        <input type="checkbox" class="set-checkbox" value="{set_name}">
+        <a href="sets/{set_name}/flashcards.html">{set_name}</a>
     </div>
     """
 
             homepage_html += """
   </div>
+  <div class="actions">
+    <button onclick="deleteSelected()">🗑️ Delete Selected</button>
+  </div>
+
+  <script>
+    function deleteSelected() {{
+      const checkboxes = document.querySelectorAll('.set-checkbox:checked');
+      if (checkboxes.length === 0) {{
+        alert('Please select at least one set to delete.');
+        return;
+      }}
+      const setsToDelete = Array.from(checkboxes).map(cb => cb.value);
+      if (!confirm(`Are you sure you want to delete ${setsToDelete.length} set(s)?`)) return;
+
+      fetch('/delete_sets', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify({{ sets: setsToDelete }})
+      }})
+      .then(res => {{
+        if (res.ok) location.reload();
+        else alert("Something went wrong deleting sets.");
+      }});
+    }}
+  </script>
 </body>
 </html>
 """
@@ -506,6 +553,32 @@ def delete_set(set_name):
 
     return redirect(url_for('homepage'))
 
+@app.route('/delete_sets', methods=['POST'])
+def delete_sets():
+    data = request.get_json()
+    sets_to_delete = data.get('sets', [])
+
+    repo_path = os.path.abspath(os.path.dirname(__file__))
+    deleted_anything = False
+
+    for set_name in sets_to_delete:
+        paths_to_delete = [
+            os.path.join(repo_path, "output", set_name),
+            os.path.join(repo_path, "static", set_name),
+            os.path.join(repo_path, "sets", set_name)
+        ]
+        for path in paths_to_delete:
+            if os.path.exists(path):
+                shutil.rmtree(path)
+                deleted_anything = True
+
+    if deleted_anything:
+        repo = Repo(repo_path)
+        repo.git.add(update=True)
+        repo.index.commit(f"Deleted flashcard sets: {', '.join(sets_to_delete)}")
+        repo.remote(name="origin").push()
+
+    return jsonify(success=True)
 
 
 
