@@ -94,7 +94,7 @@ def index():
             }}
 
         .card {{
-            width: 90%;
+            width: 100%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
@@ -106,9 +106,12 @@ def index():
         }}
 
         .card-inner {{
-            width: 100%; height: 100%;
+            width: 100%; 
+            height: 100%;
+            margin: 0 auto;
             position: relative;
             transition: transform 0.6s;
+            transform-origin: center;
             transform-style: preserve-3d;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -167,6 +170,7 @@ def index():
             margin-top: 30px;
             justify-content: center;
             width: 150px;
+            max-width: 350px;
         }}
         button {{
             padding: 10px 20px;
