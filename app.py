@@ -94,7 +94,7 @@ def index():
             }}
 
         .card {{
-            width: 100%;
+            width: 90%;
             max-width: 350px;
             height: 220px;
             perspective: 1000px;
