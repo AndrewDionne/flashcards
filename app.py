@@ -290,37 +290,42 @@ def index():
         document.getElementById("pronunciationResult").textContent = "🎙 Listening...";
 
         recognizer.recognizeOnceAsync(result => {{
-            
-                console.log("Full recognition result:", result);
-                console.log("Recognition reason:", result.reason);
+            console.log("Recognition result:", result);
 
-                try {{
-                    if (!result.json) {{
-                        document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
-                        return;
-                }}       
+            if (result.reason !== SpeechSDK.ResultReason.RecognizedSpeech) {{
+                document.getElementById("pronunciationResult").textContent =
+                    "❌ Speech not recognized. Please try again.";
+                recognizer.close();
+                return;
+            }}
 
+            if (!result.json) {{
+                document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
+                recognizer.close();
+                return;
+            }}
+
+            try {{
                 const data = JSON.parse(result.json);
-                console.log("Azure STT result JSON:", data);
-
                 const nbest = data.NBest;
 
                 if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
                     document.getElementById("pronunciationResult").textContent =
-                        "❌ No valid pronunciation result. Try speaking more clearly.";
+                        "❌ No valid pronunciation result.";
                 }} else {{
                     const score = nbest[0].PronunciationAssessment.AccuracyScore;
                     document.getElementById("pronunciationResult").innerHTML =
                         `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
                 }}
-
             }} catch (e) {{
-                console.error("Parsing error:", e);
-                document.getElementById("pronunciationResult").textContent = "⚠️ Error parsing response.";
+                console.error("JSON parse error:", e);
+                document.getElementById("pronunciationResult").textContent =
+                    "⚠️ Error parsing response.";
             }}
 
             recognizer.close();
         }});
+
     }}    
     
         function goHome() {{
@@ -352,6 +357,10 @@ def index():
     audio.load();
     audio.currentTime = 0;
     audio.play();
+
+    console.log("Result reason:", result.reason);
+    console.log("Result text:", result.text);
+    console.log("Result JSON:", result.json);
 }}
 
 
