@@ -295,21 +295,29 @@ def index():
 
         recognizer.recognizeOnceAsync(result => {{
             try {{
+                console.log("Azure STT result JSON:", result.json); // Optional debug
+
                 const data = JSON.parse(result.json);
-                const score = data.NBest?.[0]?.PronunciationAssessment?.AccuracyScore;
-                if (score !== undefined) {{
+                const nbest = data.NBest;
+
+                if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
+                    document.getElementById("pronunciationResult").textContent =
+                        "❌ No valid pronunciation result. Try speaking more clearly.";
+                }} else {{
+                    const score = nbest[0].PronunciationAssessment.AccuracyScore;
                     document.getElementById("pronunciationResult").innerHTML =
                         `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
-                }}else {{
-                    document.getElementById("pronunciationResult").textContent = "❌ Could not assess pronunciation.";
                 }}
-            }}catch (e) {{
+
+            }} catch (e) {{
+                console.error("Parsing error:", e);
                 document.getElementById("pronunciationResult").textContent = "⚠️ Error parsing response.";
             }}
+
             recognizer.close();
         }});
-    }}
 
+    }}
         function goHome() {{
         const pathParts = window.location.pathname.split("/");
         const repo = pathParts[1]; // repo name comes right after domain
