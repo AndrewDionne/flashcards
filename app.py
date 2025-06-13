@@ -153,7 +153,6 @@ def index():
             word-wrap: break-word;
             text-align: center;
             display: flex;
-            flex-direction: column
             justify-content: center;
             align-items: center;
         }}
@@ -226,7 +225,7 @@ def index():
     <div class="nav-buttons">
         <button id="prevBtn" class="nav-button">Previous</button>
         <button id="nextBtn" class="nav-button">Next</button>
-    
+    <div>
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
@@ -257,11 +256,10 @@ def index():
             <p><em>${{entry.pronunciation}}</em></p>
             <button class="play-audio-button" onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <button class="play-audio-button" onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test Pronunciation</button>
-            <div id="pronunciationResult" style="margin-top: 10px; font-size: 0.9em;"></div>
             <audio id="audioPlayer" preload="auto">
                 <source id="audioSource" src="" type="audio/mpeg" />
-        Your browser does not support the audio element.
-    </audio>
+            Your browser does not support the audio element.
+            </audio>
         `;
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === cards.length - 1;
@@ -275,7 +273,7 @@ def index():
         if (!window.SpeechSDK) {{
             alert("Azure Speech SDK not loaded.");
             return;
-    }}
+        }}
 
         const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
         speechConfig.speechRecognitionLanguage = "pl-PL";
@@ -294,10 +292,19 @@ def index():
         document.getElementById("pronunciationResult").textContent = "🎙 Listening...";
 
         recognizer.recognizeOnceAsync(result => {{
-            try {{
-                console.log("Azure STT result JSON:", result.json); // Optional debug
+            
+                console.log("Full recognition result:", result);
+                console.log("Recognition reason:", result.reason);
+
+                try {{
+                    if (!result.json) {{
+                        document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
+                        return;
+                }}       
 
                 const data = JSON.parse(result.json);
+                console.log("Azure STT result JSON:", data);
+
                 const nbest = data.NBest;
 
                 if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
@@ -316,8 +323,8 @@ def index():
 
             recognizer.close();
         }});
-
-    }}
+    }}    
+    
         function goHome() {{
         const pathParts = window.location.pathname.split("/");
         const repo = pathParts[1]; // repo name comes right after domain
