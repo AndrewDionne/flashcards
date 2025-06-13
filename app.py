@@ -266,61 +266,53 @@ def index():
         const subscriptionKey = "u5Kl1FgBq8JgfFA6KwWGwnxccWwO22B6cqnyYDdIPwlmgxCA6hdeJQQJ99BFACREanaXJ3w3AAAYACOGus50KEY";
         const serviceRegion = "canadaeast"; // e.g., "eastus"
 
+    
     function assessPronunciation(referenceText) {{
-        if (!window.SpeechSDK) {{
-            alert("Azure Speech SDK not loaded.");
-            return;
-        }}
+        if (!window.SpeechSDK) {{
+            alert("Azure Speech SDK not loaded.");
+            return;
+        }}
 
-        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-        speechConfig.speechRecognitionLanguage = "pl-PL";
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
+        speechConfig.speechRecognitionLanguage = "pl-PL";
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
 
-        const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
-            referenceText,
-            SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
-            SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
-            true
-        );
-
-        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-        pronunciationConfig.applyTo(recognizer);
-
-        document.getElementById("pronunciationResult").textContent = "🎙 Listening...";
-
-        recognizer.recognizeOnceAsync(result => {{
-            
-                console.log("Full recognition result:", result);
-                console.log("Recognition reason:", result.reason);
-
-                try {{
-                    if (!result.json) {{
-                        document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
-                        return;
-                }}       
-
-                const data = JSON.parse(result.json);
-                console.log("Azure STT result JSON:", data);
-
-                const nbest = data.NBest;
-
-                if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
-                    document.getElementById("pronunciationResult").textContent =
-                        "❌ No valid pronunciation result. Try speaking more clearly.";
-                }} else {{
-                    const score = nbest[0].PronunciationAssessment.AccuracyScore;
-                    document.getElementById("pronunciationResult").innerHTML =
-                        `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
-                }}
-
-            }} catch (e) {{
-                console.error("Parsing error:", e);
-                document.getElementById("pronunciationResult").textContent = "⚠️ Error parsing response.";
-            }}
-
-            recognizer.close();
-        }});
-    }}    
+        const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
+            referenceText,
+            SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+            SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
+            true
+        );
+        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        pronunciationConfig.applyTo(recognizer);
+        document.getElementById("pronunciationResult").textContent = "🎙️ Listening...";
+        recognizer.recognizeOnceAsync(result => {{
+            console.log("Full recognition result:", result);
+            console.log("Recognition reason:", result.reason);
+            try {{
+                if (!result.json) {{
+                    document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
+                    return;
+                }}
+                const data = JSON.parse(result.json);
+                console.log("Azure STT result JSON:", data);
+                const nbest = data.NBest;
+                if (!nbest || !nbest.length || !nbest.PronunciationAssessment) {{
+                    document.getElementById("pronunciationResult").textContent =
+                        "❌ No valid pronunciation result. Try speaking more clearly.";
+                }} else {{
+                    const score = nbest.PronunciationAssessment.AccuracyScore;
+                    document.getElementById("pronunciationResult").innerHTML =
+                        `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
+                }}
+            }} catch (e) {{
+                console.error("Parsing error:", e);
+                document.getElementById("pronunciationResult").textContent = "⚠️ Error parsing response.";
+            }}
+            recognizer.close();
+        }});
+    }}
+    
     
         function goHome() {{
         const pathParts = window.location.pathname.split("/");
