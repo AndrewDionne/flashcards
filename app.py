@@ -152,12 +152,13 @@ def index():
             word-wrap: break-word;
             text-align: center;
             display: flex;
-            flex-direction: column;
+            flex-direction: column
             justify-content: center;
             align-items: center;
         }}
         .card-back button {{
-            margin-top: 10px;
+            margin-top: auto; /* Pushes it to the bottom of the column */
+            margin-bottom: 20px; /* Optional spacing from bottom */
             padding: 8px 16px;
             font-size: 1em;
             background-color: #28a745;
@@ -168,27 +169,43 @@ def index():
         }}
         .nav-buttons {{
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            flex-direction: row;
             justify-content: center;
-            width: 180px;
-            height: 30px;
-            max-width: 350px;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
         }}
-        button {{
-            padding: 4px 8px;
+
+        .nav-button {{
+           padding: 6px 12px;
             font-size: 1em;
+            background-color: #007bff;
+            color: white;
             border: none;
             border-radius: 8px;
-            background-color: #007bff;
-            width: 150px           /* smaller fixed width */
-            height: 10px;           /* smaller fixed height */
-            border-radius: 4px;     /* rounded corners */
+            width: 100px;
+            height: 30px;
+            cursor: pointer;
+        }}
+        .play-audio-button {{
+            margin-bottom: 10px;
+            padding: 4px 10px;
+            font-size: 0.9em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 6px;
             color: white;
             cursor: pointer;
-            
+            width: auto; /* or a fixed smaller width */
+            height: auto;
         }}
-        button:disabled {{
+
+        button {{
+            border: none;
+            cursor: pointer;
+           
+        }}
+        .nav-button:disabled {{
             background-color: #aaa;
             cursor: default;
         }}
@@ -206,8 +223,8 @@ def index():
         </div>
     </div>
     <div class="nav-buttons">
-        <button id="prevBtn">Previous</button>
-        <button id="nextBtn">Next</button>
+        <button id="prevBtn" class="nav-button">Previous</button>
+        <button id="nextBtn" class="nav-button">Next</button>
     
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
@@ -237,7 +254,7 @@ def index():
         cardBack.innerHTML = `
             <p>${{entry.phrase}}</p>
             <p><em>${{entry.pronunciation}}</em></p>
-            <button onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
+            <button class="play-audio-button" onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <audio id="audioPlayer" preload="auto">
                 <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
