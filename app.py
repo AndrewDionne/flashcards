@@ -255,6 +255,8 @@ def index():
             <p>${{entry.phrase}}</p>
             <p><em>${{entry.pronunciation}}</em></p>
             <button class="play-audio-button" onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
+            <button class="play-audio-button" onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test Pronunciation</button>
+            <div id="pronunciationResult" style="margin-top: 10px; font-size: 0.9em;"></div>
             <audio id="audioPlayer" preload="auto">
                 <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
@@ -264,6 +266,49 @@ def index():
         nextBtn.disabled = currentIndex === cards.length - 1;
         card.classList.remove("flipped");
     }}
+
+        const subscriptionKey = "u5Kl1FgBq8JgfFA6KwWGwnxccWwO22B6cqnyYDdIPwlmgxCA6hdeJQQJ99BFACREanaXJ3w3AAAYACOGus50KEY";
+        const serviceRegion = "canadaeast"; // e.g., "eastus"
+
+    function assessPronunciation(referenceText) {{
+        if (!window.SpeechSDK) {{
+            alert("Azure Speech SDK not loaded.");
+            return;
+    }}
+
+        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
+        speechConfig.speechRecognitionLanguage = "pl-PL";
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+
+        const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
+            referenceText,
+            SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+            SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
+            true
+        );
+
+        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        pronunciationConfig.applyTo(recognizer);
+
+        document.getElementById("pronunciationResult").textContent = "🎙 Listening...";
+
+        recognizer.recognizeOnceAsync(result => {{
+            try {{
+                const data = JSON.parse(result.json);
+                const score = data.NBest?.[0]?.PronunciationAssessment?.AccuracyScore;
+                if (score !== undefined) {{
+                    document.getElementById("pronunciationResult").innerHTML =
+                        `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
+                }}else {{
+                    document.getElementById("pronunciationResult").textContent = "❌ Could not assess pronunciation.";
+                }}
+            }}catch (e) {{
+                document.getElementById("pronunciationResult").textContent = "⚠️ Error parsing response.";
+            }}
+            recognizer.close();
+        }});
+    }}
+
         function goHome() {{
         const pathParts = window.location.pathname.split("/");
         const repo = pathParts[1]; // repo name comes right after domain
