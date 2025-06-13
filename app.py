@@ -256,11 +256,8 @@ def index():
             <p><em>${{entry.pronunciation}}</em></p>
             <button class="play-audio-button" onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <button class="play-audio-button" onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test Pronunciation</button>
-            <audio id="audioPlayer" preload="auto">
-                <source id="audioSource" src="" type="audio/mpeg" />
-            Your browser does not support the audio element.
-            </audio>
-        `;
+            `;
+            
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === cards.length - 1;
         card.classList.remove("flipped");
