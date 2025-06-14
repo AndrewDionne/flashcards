@@ -34,6 +34,9 @@ def get_token():
     except requests.RequestException as e:
         print("❌ Azure token request failed:", e)  # ✅ PRINT TO CONSOLE
         return jsonify({"error": str(e)}), 500
+@app.route("/")
+def root_check():
+    return "✅ Render Flask App is Alive", 200
 
 # Serve audio files from the 'audio' folder
 @app.route('/audio/<filename>')
