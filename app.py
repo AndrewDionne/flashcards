@@ -13,7 +13,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY", "9sBFLVjjteS718vu0gv1aKe28IdAbhdko1E4rleigElSP6rolVlOJQQJ99BFACREanaXJ3w3AAAYACOGQ95s")
+AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY", "u5Kl1FgBq8JgfFA6KwWGwnxccWwO22B6cqnyYDdIPwlmgxCA6hdeJQQJ99BFACREanaXJ3w3AAAYACOGus50")
 AZURE_REGION = os.environ.get("AZURE_REGION", "canadaeast")
 
 @app.route("/api/token", methods=["GET"])
@@ -44,7 +44,6 @@ def sanitize_filename(text):
     # Replace all non-alphanumeric chars with underscore for safe filenames
     return re.sub(r'[^a-zA-Z0-9]', '_', text)
 #this is the code for generating the flash cards
-# This is the code for generating the flash cards
 @app.route("/create", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -353,7 +352,10 @@ def index():
 
     updateCard();
     async function getSpeechConfig() {{
-    const res = await fetch("http://127.0.0.1:5000/api/token");  // Or your deployed endpoint
+    const BASE_URL = location.hostname.includes("localhost")
+        ? "http://127.0.0.1:5000"
+        : "https://flashcards-5c95.onrender.com";
+    const res = await fetch(`${{BASE_URL}}/api/token`);
     const data = await res.json();
 
     if (!data.token) {{
@@ -652,16 +654,26 @@ def publish():
                 f.write(homepage_html)
 
             # 4. Commit and push
-            repo = Repo(os.getcwd())
-            repo.git.add(A=True)
-            repo.index.commit("📘 Publish flashcard sets with homepage")
-            repo.remote(name="origin").push()
+            try:
+                repo_path = os.getcwd()
+                repo = Repo(repo_path)
 
-            return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
-        except Exception as e:
-            return f"<h3 style='color:red;'>❌ Git publish failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
-    else:
-        return render_template("publish.html", sets=sorted(os.listdir("output")))
+                if repo.is_dirty(untracked_files=True):
+                    repo.git.add(all=True)
+                    repo.index.commit("📘 Publish flashcard sets with homepage")
+                else:
+                    print("ℹ️ No changes to commit.")
+                    return f"<h3 style='color:orange;'>ℹ️ No changes to publish.</h3><a href='/'>⬅ Back</a>"
+
+                origin = repo.remote(name="origin")
+                origin.push()
+
+                return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
+
+            except Exception as e:
+                print("❌ Git push failed:", e)
+                return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back</a>"
+
 
 # TO DELETE 
 @app.route('/delete_set/<set_name>', methods=['POST'])
@@ -738,10 +750,16 @@ def delete_sets():
 
 
 def open_browser():
-    webbrowser.open("http://127.0.0.1:5000")
+    import webbrowser
+    webbrowser.open_new("http://127.0.0.1:5000")
 
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 5000))  # Render will set this
+    port = int(os.environ.get("PORT", 5000))
+
+    if os.environ.get("RENDER") != "true":  # Avoid on Render
+        import threading
+        threading.Timer(1.5, open_browser).start()
+
     print(f"🚀 Starting Flask app on port {port}...")
     app.run(host="0.0.0.0", port=port)
