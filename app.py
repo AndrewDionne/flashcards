@@ -7,8 +7,33 @@ import threading
 import webbrowser
 from gtts import gTTS
 from git import Repo
+import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
+AZURE_SPEECH_KEY = "9sBFLVjjteS718vu0gv1aKe28IdAbhdko1E4rleigElSP6rolVlOJQQJ99BFACREanaXJ3w3AAAYACOGQ95s"
+AZURE_REGION = "canadaeast"
+
+@app.route("/api/token", methods=["GET"])
+def get_token():
+    url = f"https://{AZURE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    headers = {
+        "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
+        "Content-Length": "0"
+    }
+
+    try:
+        response = requests.post(url, headers=headers)
+        response.raise_for_status()
+        return jsonify({
+            "token": response.text,
+            "region": AZURE_REGION
+        })
+    except requests.RequestException as e:
+        print("❌ Azure token request failed:", e)  # ✅ PRINT TO CONSOLE
+        return jsonify({"error": str(e)}), 500
 
 # Serve audio files from the 'audio' folder
 @app.route('/audio/<filename>')
@@ -64,7 +89,6 @@ def index():
     <meta charset="UTF-8" />
     <title>{set_name} Flashcards</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -153,6 +177,7 @@ def index():
             word-wrap: break-word;
             text-align: center;
             display: flex;
+            flex-direction: column
             justify-content: center;
             align-items: center;
         }}
@@ -225,15 +250,15 @@ def index():
     <div class="nav-buttons">
         <button id="prevBtn" class="nav-button">Previous</button>
         <button id="nextBtn" class="nav-button">Next</button>
-    <div>
+    
     <audio id="audioPlayer" preload="auto">
         <source id="audioSource" src="" type="audio/mpeg" />
         Your browser does not support the audio element.
     </audio>
-    <div id="pronunciationResult" style="margin-top: 10px; font-size: 0.9em;"></div>
 """
         # JavaScript part (add after HTML body layout)
         html_script = f"""
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script>
     const cards = {json.dumps(data)};
     const setName = "{set_name}";
@@ -257,77 +282,18 @@ def index():
             <p><em>${{entry.pronunciation}}</em></p>
             <button class="play-audio-button" onclick="playAudio('${{filename}}')">▶️ Play Audio</button>
             <button class="play-audio-button" onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test Pronunciation</button>
-            `;
-            
+            <div id="pronunciationResult" style="margin-top: 10px; font-size: 0.9em;"></div>
+            <audio id="audioPlayer" preload="auto">
+                <source id="audioSource" src="" type="audio/mpeg" />
+                Your browser does not support the audio element.
+            </audio>
+        `;
         prevBtn.disabled = currentIndex === 0;
         nextBtn.disabled = currentIndex === cards.length - 1;
         card.classList.remove("flipped");
     }}
+        
 
-        const subscriptionKey = "u5Kl1FgBq8JgfFA6KwWGwnxccWwO22B6cqnyYDdIPwlmgxCA6hdeJQQJ99BFACREanaXJ3w3AAAYACOGus50KEY";
-        const serviceRegion = "canadaeast"; // e.g., "eastus"
-
-    function assessPronunciation(referenceText) {{
-        if (!window.SpeechSDK) {{
-            alert("Azure Speech SDK not loaded.");
-            return;
-        }}
-
-        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-        speechConfig.speechRecognitionLanguage = "pl-PL";
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-
-        const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
-            referenceText,
-            SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
-            SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
-            true
-        );
-
-        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-        pronunciationConfig.applyTo(recognizer);
-
-        document.getElementById("pronunciationResult").textContent = "🎙 Listening...";
-
-        recognizer.recognizeOnceAsync(result => {{
-            console.log("Recognition result:", result);
-
-            if (result.reason !== SpeechSDK.ResultReason.RecognizedSpeech) {{
-                document.getElementById("pronunciationResult").textContent =
-                    "❌ Speech not recognized. Please try again.";
-                recognizer.close();
-                return;
-            }}
-
-            if (!result.json) {{
-                document.getElementById("pronunciationResult").textContent = "⚠️ No response from Azure.";
-                recognizer.close();
-                return;
-            }}
-
-            try {{
-                const data = JSON.parse(result.json);
-                const nbest = data.NBest;
-
-                if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
-                    document.getElementById("pronunciationResult").textContent =
-                        "❌ No valid pronunciation result.";
-                }} else {{
-                    const score = nbest[0].PronunciationAssessment.AccuracyScore;
-                    document.getElementById("pronunciationResult").innerHTML =
-                        `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
-                }}
-            }} catch (e) {{
-                console.error("JSON parse error:", e);
-                document.getElementById("pronunciationResult").textContent =
-                    "⚠️ Error parsing response.";
-            }}
-
-            recognizer.close();
-        }});
-
-    }}    
-    
         function goHome() {{
         const pathParts = window.location.pathname.split("/");
         const repo = pathParts[1]; // repo name comes right after domain
@@ -357,10 +323,6 @@ def index():
     audio.load();
     audio.currentTime = 0;
     audio.play();
-
-    console.log("Result reason:", result.reason);
-    console.log("Result text:", result.text);
-    console.log("Result JSON:", result.json);
 }}
 
 
@@ -390,6 +352,100 @@ def index():
     }});
 
     updateCard();
+    async function getSpeechConfig() {{
+    const res = await fetch("http://127.0.0.1:5000/api/token");  // Or your deployed endpoint
+    const data = await res.json();
+
+    if (!data.token) {{
+        throw new Error("Failed to fetch speech token");
+    }}
+
+    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+    speechConfig.speechRecognitionLanguage = "pl-PL";
+    return speechConfig;
+}}
+
+    async function assessPronunciation(referenceText) {{
+        const resultDiv = document.getElementById("pronunciationResult");
+
+        if (!window.SpeechSDK) {{
+            resultDiv.textContent = "❌ Azure Speech SDK not loaded.";
+            return;
+        }}
+
+        try {{
+            const speechConfig = await getSpeechConfig();
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+
+            const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                referenceText,
+                SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                SpeechSDK.PronunciationAssessmentGranularity.Phoneme,
+                true
+            );
+
+            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+            pronunciationConfig.applyTo(recognizer);
+
+            resultDiv.textContent = "🎙 Listening...";
+
+            recognizer.recognizeOnceAsync(result => {{
+                console.log("Azure Recognition Result:", result);
+
+                if (result.reason !== SpeechSDK.ResultReason.RecognizedSpeech) {{
+                    resultDiv.textContent = "❌ Speech not recognized. Try again.";
+                    recognizer.close();
+                    return;
+                }}
+
+                if (!result.json) {{
+                    resultDiv.textContent = "⚠️ No response from Azure.";
+                    recognizer.close();
+                    return;
+                }}
+
+                try {{
+                    const data = JSON.parse(result.json);
+                    const nbest = data.NBest;
+
+                    if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
+                        resultDiv.textContent = "❌ No valid pronunciation result.";
+                    }} else {{
+                        const score = nbest[0].PronunciationAssessment.AccuracyScore;
+                        resultDiv.innerHTML = `✅ Accuracy Score: <strong>${{score.toFixed(1)}}%</strong>`;
+                    }}
+                }} catch (e) {{
+                    console.error("Error parsing Azure JSON:", e);
+                    resultDiv.textContent = "⚠️ Error parsing response.";
+                }}
+
+                recognizer.close();
+            }});
+        }} catch (error) {{
+            console.error("Azure token or recognition error:", error);
+            resultDiv.textContent = "❌ Could not assess pronunciation.";
+        }}
+    }}
+
+    document.addEventListener("keydown", (event) => {{
+        if (event.key === "ArrowLeft") {{
+            if (currentIndex > 0) {{
+                currentIndex--;
+                updateCard();
+            }}
+        }} else if (event.key === "ArrowRight") {{
+            if (currentIndex < cards.length - 1) {{
+                currentIndex++; 
+                updateCard();
+            }}
+        }} else if (event.key === "Enter") {{
+            card.classList.toggle("flipped");
+        }}
+    }});
+    document.addEventListener("DOMContentLoaded", () => {{
+        const homeBtn = document.querySelector(".home-btn");
+        homeBtn.addEventListener("click", goHome);
+    }});
 </script>
 </body>
 </html>
