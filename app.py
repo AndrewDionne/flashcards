@@ -13,8 +13,8 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-AZURE_SPEECH_KEY = "9sBFLVjjteS718vu0gv1aKe28IdAbhdko1E4rleigElSP6rolVlOJQQJ99BFACREanaXJ3w3AAAYACOGQ95s"
-AZURE_REGION = "canadaeast"
+AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
+AZURE_REGION = os.environ.get("AZURE_REGION", "canadaeast")
 
 @app.route("/api/token", methods=["GET"])
 def get_token():
