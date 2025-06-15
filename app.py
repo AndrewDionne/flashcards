@@ -357,6 +357,7 @@ def index():
    
 
     async function assessPronunciation(referenceText) {{
+        let cachedSpeechConfig = null;
         async function getSpeechConfig() {{
             if (cachedSpeechConfig) return cachedSpeechConfig;
 
