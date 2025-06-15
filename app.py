@@ -676,7 +676,10 @@ def publish():
             except Exception as e:
                 print("❌ Git push failed:", e)
                 return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back</a>"
-
+            
+        except Exception as e:
+            print("❌ Publish block failed:", e)
+            return f"<h3 style='color:red;'>❌ Publish failed: {e}</h3><a href='/'>⬅ Back</a>"
 
 # TO DELETE 
 @app.route('/delete_set/<set_name>', methods=['POST'])
