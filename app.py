@@ -34,9 +34,6 @@ def get_token():
     except requests.RequestException as e:
         print("❌ Azure token request failed:", e)  # ✅ PRINT TO CONSOLE
         return jsonify({"error": str(e)}), 500
-@app.route("/")
-def root_check():
-    return "✅ Render Flask App is Alive", 200
 
 # Serve audio files from the 'audio' folder
 @app.route('/audio/<filename>')
@@ -663,29 +660,17 @@ def publish():
                 f.write(homepage_html)
 
             # 4. Commit and push
-            try:
-                repo_path = os.getcwd()
-                repo = Repo(repo_path)
+            repo = Repo(os.getcwd())
+            repo.git.add(A=True)
+            repo.index.commit("📘 Publish flashcard sets with homepage")
+            repo.remote(name="origin").push()
 
-                if repo.is_dirty(untracked_files=True):
-                    repo.git.add(all=True)
-                    repo.index.commit("📘 Publish flashcard sets with homepage")
-                else:
-                    print("ℹ️ No changes to commit.")
-                    return f"<h3 style='color:orange;'>ℹ️ No changes to publish.</h3><a href='/'>⬅ Back</a>"
-
-                origin = repo.remote(name="origin")
-                origin.push()
-
-                return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
-
-            except Exception as e:
-                print("❌ Git push failed:", e)
-                return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back</a>"
-            
+            return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
         except Exception as e:
-            print("❌ Publish block failed:", e)
-            return f"<h3 style='color:red;'>❌ Publish failed: {e}</h3><a href='/'>⬅ Back</a>"
+            return f"<h3 style='color:red;'>❌ Git publish failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
+    else:
+        return render_template("publish.html", sets=sorted(os.listdir("output")))
+
 
 # TO DELETE 
 @app.route('/delete_set/<set_name>', methods=['POST'])
