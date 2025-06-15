@@ -13,7 +13,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY", "u5Kl1FgBq8JgfFA6KwWGwnxccWwO22B6cqnyYDdIPwlmgxCA6hdeJQQJ99BFACREanaXJ3w3AAAYACOGus50")
+AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
 AZURE_REGION = os.environ.get("AZURE_REGION", "canadaeast")
 
 @app.route("/api/token", methods=["GET"])
@@ -760,7 +760,6 @@ def open_browser():
     webbrowser.open_new("http://127.0.0.1:5000")
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
 
     if os.environ.get("RENDER") != "true":  # Avoid on Render
