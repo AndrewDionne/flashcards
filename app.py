@@ -354,23 +354,28 @@ def index():
     }});
 
     updateCard();
-    async function getSpeechConfig() {{
-    const BASE_URL = location.hostname.includes("localhost")
-        ? "http://127.0.0.1:5000"
-        : "https://flashcards-5c95.onrender.com";
-    const res = await fetch(`${{BASE_URL}}/api/token`);
-    const data = await res.json();
-
-    if (!data.token) {{
-        throw new Error("Failed to fetch speech token");
-    }}
-
-    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
-    speechConfig.speechRecognitionLanguage = "pl-PL";
-    return speechConfig;
-}}
+   
 
     async function assessPronunciation(referenceText) {{
+        async function getSpeechConfig() {{
+            if (cachedSpeechConfig) return cachedSpeechConfig;
+
+            const BASE_URL = "https://flashcards-5c95.onrender.com"; // ✅ hardcoded Render backend
+
+            const res = await fetch(`${{BASE_URL}}/api/token`);
+            const data = await res.json();
+
+            if (!data.token) {{
+                throw new Error("Failed to fetch speech token");
+            }}
+
+            const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+            speechConfig.speechRecognitionLanguage = "pl-PL";
+            cachedSpeechConfig = speechConfig;
+            return speechConfig;
+        }}
+
+        
         const resultDiv = document.getElementById("pronunciationResult");
 
         if (!window.SpeechSDK) {{
