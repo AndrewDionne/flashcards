@@ -629,6 +629,11 @@ def publish():
   </div>
   <div class="actions">
     <button onclick="deleteSelected()">🗑️ Delete Selected</button>
+    
+        <!-- ✅ Add this new Publish form -->
+    <form action="/publish" method="POST" style="display:inline;">
+        <button type="submit">🚀 Publish All Sets</button>
+    </form>
   </div>
 
   <script>
@@ -660,16 +665,34 @@ def publish():
                 f.write(homepage_html)
 
             # 4. Commit and push
-            repo = Repo(os.getcwd())
-            repo.git.add(A=True)
-            repo.index.commit("📘 Publish flashcard sets with homepage")
-            repo.remote(name="origin").push()
+            try:
+                repo_path = os.getcwd()
+                repo = Repo(repo_path)
 
-            return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
+                if repo.is_dirty(untracked_files=True):
+                    repo.git.add(all=True)
+                    repo.index.commit("📘 Publish flashcard sets with homepage")
+                else:
+                    print("ℹ️ No changes to commit.")
+                    return f"<h3 style='color:orange;'>ℹ️ No changes to publish.</h3><a href='/'>⬅ Back</a>"
+
+                origin = repo.remote(name="origin")
+                origin.push()
+
+                return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
+
+            except Exception as e:
+                print("❌ Git push failed:", e)
+                return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back</a>"
+            
         except Exception as e:
-            return f"<h3 style='color:red;'>❌ Git publish failed: {e}</h3><a href='/'>⬅ Back to homepage</a>"
-    else:
-        return render_template("publish.html", sets=sorted(os.listdir("output")))
+            print("❌ Publish block failed:", e)
+            return f"<h3 style='color:red;'>❌ Publish failed: {e}</h3><a href='/'>⬅ Back</a>"
+    return """
+        <h3>📤 This is the publish endpoint.</h3>
+        <p>Please click the “Publish” button from the homepage to publish all sets.</p>
+        <a href="/">⬅ Back to homepage</a>
+    """
 
 
 # TO DELETE 
