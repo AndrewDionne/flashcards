@@ -629,6 +629,7 @@ def publish():
   </div>
   <div class="actions">
     <button onclick="deleteSelected()">🗑️ Delete Selected</button>
+    <a href="/create">➕ Create New Set</a>
     
         <!-- ✅ Add this new Publish form -->
     <form action="/publish" method="POST" style="display:inline;">
