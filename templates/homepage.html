@@ -80,9 +80,7 @@
           <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
             ▶ {{ set.name }}
           </a><br>
-          {% if set.count %}
-          <span class="meta">{{ set.count }} cards</span>
-          {% endif %}
+          
         </div>
       </li>
       {% endfor %}
