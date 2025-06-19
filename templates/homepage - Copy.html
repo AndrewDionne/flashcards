@@ -80,18 +80,17 @@
           <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
             ▶ {{ set.name }}
           </a><br>
-          {% if set.count %}
-          <span class="meta">{{ set.count }} cards</span>
-          {% endif %}
+          <span class="meta">{{ set.count }} cards</span><br>
+          <a class="meta" href="/publish?set_name={{ set.name }}">🔗 Publish "{{ set.name }}"</a>
         </div>
       </li>
       {% endfor %}
     </ul>
 
     <div class="actions">
-      <button type="button" onclick="deleteSelected()">🗑 Delete Selected</button>
-      <a href="/create">➕ Create New Set</a>
-    </div>
+  <button type="button" onclick="deleteSelected()">🗑 Delete Selected</button>
+</div>
+
   </form>
   {% else %}
     <p>No flashcard sets found yet.</p>
@@ -124,3 +123,5 @@
   </script>
 </body>
 </html>
+
+

@@ -464,11 +464,125 @@ def index():
         with open(output_html_path, "w", encoding="utf-8") as f:
             f.write(full_html + html_script)
 
+        # ✅ Generate docs/sets/[set_name]/flashcards.html
+        dst_set_dir = os.path.join("docs", "sets", set_name)
+        os.makedirs(dst_set_dir, exist_ok=True)
+        shutil.copyfile(output_html_path, os.path.join(dst_set_dir, "flashcards.html"))
+        shutil.copytree(audio_dir, os.path.join(dst_set_dir, "audio"), dirs_exist_ok=True)
+
+        # ✅ Rebuild docs/index.html homepage
+        sets = sorted([
+            d for d in os.listdir("output")
+            if os.path.isdir(os.path.join("output", d)) and os.path.exists(os.path.join("output", d, "flashcards.html"))
+        ])
+
+        homepage_html = f"""<!DOCTYPE html>
+        <html lang="en">
+        <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Flashcard Sets</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+        <style>
+            body {{
+            font-family: 'Inter', sans-serif;
+            background: #f1f3f8;
+            margin: 0;
+            padding: 30px 20px;
+            color: #333;
+            }}
+            h1 {{
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1a202c;
+            }}
+            .card-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+            }}
+            .set-card {{
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }}
+            .set-card:hover {{
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            }}
+            .set-card a {{
+            text-decoration: none;
+            color: #2563eb;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: block;
+            }}
+            .set-card a:hover {{
+            text-decoration: underline;
+            }}
+            .actions {{
+            margin-top: 40px;
+            text-align: center;
+            }}
+            .actions a {{
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 1rem;
+            }}
+            .actions a:hover {{
+            background-color: #0056b3;
+            }}
+        </style>
+        </head>
+        <body>
+        <h1>📚 Choose a Polish Flashcard Set</h1>
+        <div class="card-grid">
+        """
+        for set_name in sets:
+            homepage_html += f"""
+            <div class="set-card">
+                <a href="sets/{set_name}/flashcards.html">{set_name}</a>
+            </div>
+            """
+        homepage_html += """
+        </div>
+        <div class="actions">
+            <a href="/create">➕ Create New Set</a>
+        </div>
+        </body>
+        </html>
+        """
+
+        for s in sets:
+            homepage_html += f"<li><a href='sets/{s}/flashcards.html'>{s}</a></li>"
+
+        homepage_html += "</ul><a href='/create'>➕ Create New Set</a></body></html>"
+
+        with open("docs/index.html", "w", encoding="utf-8") as f:
+            f.write(homepage_html)
+
+        # ✅ Auto-push to GitHub
+        try:
+            repo = Repo(os.getcwd())
+            if repo.is_dirty(untracked_files=True):
+                repo.git.add(all=True)
+                repo.index.commit(f"✅ Add new set: {set_name}")
+                repo.remote(name="origin").push()
+        except Exception as e:
+            print(f"❌ Git push failed: {e}")
+
         return redirect(f"/output/{set_name}/flashcards.html")
-
-    return render_template("index.html")
-
-
+    else:
+        return render_template("index.html")
 
 
 # Serve generated HTML and static files
@@ -507,193 +621,6 @@ def homepage():
 @app.route("/output/<path:filename>")
 def serve_output_file(filename):
     return send_from_directory("output", filename)
-
-@app.route("/publish", methods=["GET", "POST"])
-def publish():
-    if request.method == "POST":
-        try:
-            # 1. Create "docs" folder structure for GitHub Pages
-            if not os.path.exists("docs"):
-                os.makedirs("docs/sets")
-
-            sets = sorted([
-                d for d in os.listdir("output")
-                if os.path.isdir(os.path.join("output", d))
-                and os.path.exists(os.path.join("output", d, "flashcards.html"))
-            ])
-
-            # 2. Copy HTML and audio files
-            for set_name in sets:
-                dst_set_dir = os.path.join("docs", "sets", set_name)
-                os.makedirs(dst_set_dir, exist_ok=True)
-                src_html = os.path.join("output", set_name, "flashcards.html")
-                dst_html = os.path.join(dst_set_dir, "flashcards.html")
-                shutil.copyfile(src_html, dst_html)
-
-                src_audio = os.path.join("static", set_name, "audio")
-                dst_audio = os.path.join("docs", "sets", set_name, "audio")
-                if os.path.exists(src_audio):
-                    shutil.copytree(src_audio, dst_audio, dirs_exist_ok=True)
-
-            homepage_html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flashcard Sets</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {{
-      font-family: 'Inter', sans-serif;
-      background: #f1f3f8;
-      margin: 0;
-      padding: 30px 20px;
-      color: #333;
-    }}
-    h1 {{
-      font-size: 2rem;
-      text-align: center;
-      margin-bottom: 40px;
-      color: #1a202c;
-    }}
-    .card-grid {{
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }}
-    .set-card {{
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      text-align: center;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }}
-    .set-card:hover {{
-      transform: translateY(-4px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    }}
-    .set-card a {{
-      text-decoration: none;
-      color: #2563eb;
-      font-size: 1.1rem;
-      font-weight: 600;
-      display: block;
-    }}
-    .set-card a:hover {{
-      text-decoration: underline;
-    }}
-    .set-checkbox {{
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      transform: scale(1.3);
-    }}
-    .actions {{
-      margin-top: 40px;
-      text-align: center;
-    }}
-    .actions button {{
-      background-color: #dc3545;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }}
-    @media (hover: none) {{
-      .set-card:hover {{
-        transform: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      }}
-    }}
-  </style>
-</head>
-<body>
-  <h1>📚 Choose a Polish Flashcard Set</h1>
-  <div class="card-grid">
-"""
-
-            for set_name in sets:
-                homepage_html += f"""
-    <div class="set-card">
-        <input type="checkbox" class="set-checkbox" value="{set_name}">
-        <a href="sets/{set_name}/flashcards.html">{set_name}</a>
-    </div>
-    """
-
-            homepage_html += """
-  </div>
-  <div class="actions">
-    <button onclick="deleteSelected()">🗑️ Delete Selected</button>
-    <a href="/create">➕ Create New Set</a>
-    
-        <!-- ✅ Add this new Publish form -->
-    <form action="/publish" method="POST" style="display:inline;">
-        <button type="submit">🚀 Publish All Sets</button>
-    </form>
-  </div>
-
-  <script>
-    function deleteSelected() {{
-      const checkboxes = document.querySelectorAll('.set-checkbox:checked');
-      if (checkboxes.length === 0) {{
-        alert('Please select at least one set to delete.');
-        return;
-      }}
-      const setsToDelete = Array.from(checkboxes).map(cb => cb.value);
-      if (!confirm(`Are you sure you want to delete ${setsToDelete.length} set(s)?`)) return;
-
-      fetch('/delete_sets', {{
-        method: 'POST',
-        headers: {{ 'Content-Type': 'application/json' }},
-        body: JSON.stringify({{ sets: setsToDelete }})
-      }})
-      .then(res => {{
-        if (res.ok) location.reload();
-        else alert("Something went wrong deleting sets.");
-      }});
-    }}
-  </script>
-</body>
-</html>
-"""
-
-            with open(os.path.join("docs", "index.html"), "w", encoding="utf-8") as f:
-                f.write(homepage_html)
-
-            # 4. Commit and push
-            try:
-                repo_path = os.getcwd()
-                repo = Repo(repo_path)
-
-                if repo.is_dirty(untracked_files=True):
-                    repo.git.add(all=True)
-                    repo.index.commit("📘 Publish flashcard sets with homepage")
-                else:
-                    print("ℹ️ No changes to commit.")
-                    return f"<h3 style='color:orange;'>ℹ️ No changes to publish.</h3><a href='/'>⬅ Back</a>"
-
-                origin = repo.remote(name="origin")
-                origin.push()
-
-                return f"<h3 style='color:green;'>✅ All flashcard sets published to GitHub Pages.</h3><a href='/'>⬅ Back to homepage</a>"
-
-            except Exception as e:
-                print("❌ Git push failed:", e)
-                return f"<h3 style='color:red;'>❌ Git push failed: {e}</h3><a href='/'>⬅ Back</a>"
-            
-        except Exception as e:
-            print("❌ Publish block failed:", e)
-            return f"<h3 style='color:red;'>❌ Publish failed: {e}</h3><a href='/'>⬅ Back</a>"
-    return """
-        <h3>📤 This is the publish endpoint.</h3>
-        <p>Please click the “Publish” button from the homepage to publish all sets.</p>
-        <a href="/">⬅ Back to homepage</a>
-    """
 
 
 # TO DELETE 
