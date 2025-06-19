@@ -23,6 +23,9 @@ def get_token():
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
         "Content-Length": "0"
     }
+    if not AZURE_SPEECH_KEY:
+        print("❌ AZURE_SPEECH_KEY is not set!")
+        return jsonify({"error": "AZURE_SPEECH_KEY missing"}), 500
 
     try:
         response = requests.post(url, headers=headers)
