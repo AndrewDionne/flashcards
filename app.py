@@ -550,12 +550,12 @@ def index():
         <h1>📚 Choose a Polish Flashcard Set</h1>
         <div class="card-grid">
         """
-        #for set_name in sets:
-            #homepage_html += f"""
-            #<div class="set-card">
-                #<a href="sets/{set_name}/flashcards.html">{set_name}</a>
-            #</div>
-            #"""
+        for set_name in sets:
+            homepage_html += f"""
+            <div class="set-card">
+                <a href="sets/{set_name}/flashcards.html">{set_name}</a>
+            </div>
+            """
         homepage_html += """
         </div>
         <div class="actions">
@@ -565,8 +565,8 @@ def index():
         </html>
         """
 
-        for s in sets:
-            homepage_html += f"<li><a href='sets/{s}/flashcards.html'>{s}</a></li>"
+        #for s in sets:
+            #homepage_html += f"<li><a href='sets/{s}/flashcards.html'>{s}</a></li>"
 
         homepage_html += "</ul><a href='/create'>➕ Create New Set</a></body></html>"
 
