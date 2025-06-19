@@ -550,12 +550,12 @@ def index():
         <h1>📚 Choose a Polish Flashcard Set</h1>
         <div class="card-grid">
         """
-        for set_name in sets:
-            homepage_html += f"""
-            <div class="set-card">
-                <a href="sets/{set_name}/flashcards.html">{set_name}</a>
-            </div>
-            """
+        #for set_name in sets:
+            #homepage_html += f"""
+            #<div class="set-card">
+                #<a href="sets/{set_name}/flashcards.html">{set_name}</a>
+            #</div>
+            #"""
         homepage_html += """
         </div>
         <div class="actions">
