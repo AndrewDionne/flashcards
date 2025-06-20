@@ -568,7 +568,7 @@ def index():
         #for s in sets:
             #homepage_html += f"<li><a href='sets/{s}/flashcards.html'>{s}</a></li>"
 
-        homepage_html += "</ul><a href='/create'>➕ Create New Set</a></body></html>"
+        #homepage_html += "</ul><a href='/create'>➕ Create New Set</a></body></html>"
 
         with open("docs/index.html", "w", encoding="utf-8") as f:
             f.write(homepage_html)
