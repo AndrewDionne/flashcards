@@ -2,6 +2,9 @@ from flask import render_template, request, redirect, send_from_directory, jsoni
 import os, json, shutil
 from .utils import sanitize_filename, generate_flashcard_html, load_sets_with_counts, handle_flashcard_creation
 from .git_utils import commit_and_push_changes, delete_set_and_push
+from flask import send_file
+from flask import send_file
+from pathlib import Path
 
 def init_routes(app):
 
@@ -27,13 +30,18 @@ def init_routes(app):
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
-        # Normalize path to fix Windows backslash issue
-        normalized_filename = filename.replace("\\", "/")
-        full_path = os.path.join("output", normalized_filename)
-        print("📄 Trying to serve:", full_path)
-        if not os.path.exists(full_path):
+        print("Raw filename from browser:", filename)
+
+        # Normalize safely using Path
+        full_path = Path("output") / Path(filename)
+
+        print("📄 Normalized full path:", full_path)
+
+        if not full_path.exists():
             print("❌ File not found:", full_path)
-        return send_from_directory("output", normalized_filename)
+            return "File not found", 404
+
+        return send_file(full_path)
 
     #@app.route("/output/<path:filename>")
     #def serve_output_file(filename):
