@@ -27,11 +27,13 @@ def init_routes(app):
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
-        full_path = os.path.join("output", filename)
+        # Normalize path to fix Windows backslash issue
+        normalized_filename = filename.replace("\\", "/")
+        full_path = os.path.join("output", normalized_filename)
         print("📄 Trying to serve:", full_path)
         if not os.path.exists(full_path):
             print("❌ File not found:", full_path)
-        return send_from_directory("output", filename)
+        return send_from_directory("output", normalized_filename)
 
     #@app.route("/output/<path:filename>")
     #def serve_output_file(filename):
