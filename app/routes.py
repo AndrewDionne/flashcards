@@ -29,7 +29,7 @@ def init_routes(app):
         print("Raw audio request path:", filename)
 
         project_root = Path(__file__).resolve().parent.parent
-        full_path = project_root / "static" / Path(filename)
+        full_path = project_root / "docs" / "static" / Path(filename)
 
         print("🎧 Full resolved static path:", full_path)
 
@@ -49,7 +49,7 @@ def init_routes(app):
 
         # Resolve based on the project root, not the current file's folder
         project_root = Path(__file__).resolve().parent.parent
-        full_path = project_root / "output" / Path(filename)
+        full_path = project_root / "docs" / "output" / Path(filename)
 
         print("📄 Normalized full path:", full_path)
 
