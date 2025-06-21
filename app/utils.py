@@ -92,26 +92,68 @@ def update_docs_homepage():
         return
 
     sets = sorted([d.name for d in sets_root.iterdir() if d.is_dir()])
-    links = "\n".join(f'<li><a href="output/{s}/flashcards.html">{s}</a></li>' for s in sets)
+    links = "\n".join(
+        f'<div class="card-link"><a href="output/{s}/flashcards.html">{s}</a></div>'
+        for s in sets
+    )
 
     homepage_html = f"""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Flashcard Sets</title>
-    <style>
-        body {{ font-family: sans-serif; padding: 2rem; }}
-        ul {{ list-style: none; padding-left: 0; }}
-        li {{ margin-bottom: 0.5rem; }}
-        a {{ text-decoration: none; color: #0366d6; }}
-    </style>
+  <meta charset="UTF-8">
+  <title>📘 Flashcard Sets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+    }}
+    h1 {{
+      font-size: 1.8em;
+      text-align: center;
+      margin-bottom: 30px;
+    }}
+    .set-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
+      max-width: 900px;
+      margin: 0 auto;
+    }}
+    .card-link {{
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.1em;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s;
+    }}
+    .card-link a {{
+      text-decoration: none;
+      color: #007bff;
+    }}
+    .card-link:hover {{
+      transform: scale(1.03);
+    }}
+    footer {{
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #888;
+    }}
+  </style>
 </head>
 <body>
-    <h1>📘 Flashcard Sets</h1>
-    <ul>
-        {links}
-    </ul>
+  <h1>📘 Polish Flashcard Sets</h1>
+  <div class="set-grid">
+    {links}
+  </div>
+  <footer>Made with ❤️ for language learning</footer>
 </body>
 </html>
     """
@@ -121,7 +163,8 @@ def update_docs_homepage():
     with open(docs_path / "index.html", "w", encoding="utf-8") as f:
         f.write(homepage_html)
 
-    print("✅ docs/index.html updated with links to all flashcard sets.")
+    print("✅ docs/index.html updated with styled homepage.")
+
 
 def generate_flashcard_html(set_name, data):
     output_dir = os.path.join("docs", "output", set_name)
