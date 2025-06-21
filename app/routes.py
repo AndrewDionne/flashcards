@@ -24,7 +24,7 @@ def init_routes(app):
         from .utils import get_azure_token
         return get_azure_token()
 
-    @app.route("/static/<path:filename>")
+    @app.route("/custom_static/<path:filename>")
     def serve_static_file(filename):
         print("Raw audio request path:", filename)
 
