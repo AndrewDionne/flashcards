@@ -32,8 +32,9 @@ def init_routes(app):
     def serve_output_file(filename):
         print("Raw filename from browser:", filename)
 
-        # Normalize safely using Path
-        full_path = Path("output") / Path(filename)
+        # Resolve based on the project root, not the current file's folder
+        project_root = Path(__file__).resolve().parent.parent
+        full_path = project_root / "output" / Path(filename)
 
         print("📄 Normalized full path:", full_path)
 
