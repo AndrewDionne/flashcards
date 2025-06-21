@@ -27,7 +27,15 @@ def init_routes(app):
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
+        full_path = os.path.join("output", filename)
+        print("📄 Trying to serve:", full_path)
+        if not os.path.exists(full_path):
+            print("❌ File not found:", full_path)
         return send_from_directory("output", filename)
+
+    #@app.route("/output/<path:filename>")
+    #def serve_output_file(filename):
+        #return send_from_directory("output", filename)
 
     @app.route("/delete_set/<set_name>", methods=["POST"])
     def delete_set(set_name):
