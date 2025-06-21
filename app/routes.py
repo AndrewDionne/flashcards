@@ -24,6 +24,21 @@ def init_routes(app):
         from .utils import get_azure_token
         return get_azure_token()
 
+    @app.route("/static/<path:filename>")
+    def serve_static_file(filename):
+        print("Raw audio request path:", filename)
+
+        project_root = Path(__file__).resolve().parent.parent
+        full_path = project_root / "static" / Path(filename)
+
+        print("🎧 Full resolved static path:", full_path)
+
+        if not full_path.exists():
+            print("❌ Audio file not found:", full_path)
+            return "Audio file not found", 404
+
+        return send_file(full_path)
+
     @app.route("/audio/<filename>")
     def serve_audio(filename):
         return send_from_directory("audio", filename)
