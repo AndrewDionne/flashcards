@@ -253,15 +253,164 @@ def generate_flashcard_html(set_name, data):
 </body>
 </html>
 """
-
+    
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(full_html)
 
+    # ✅ Also generate practice.html
+    generate_practice_html(set_name, data)
 
+def generate_practice_html(set_name, data):
+    output_dir = os.path.join("docs", "output", set_name)
+    os.makedirs(output_dir, exist_ok=True)
+    html_path = os.path.join(output_dir, "practice.html")
+
+    html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{set_name} - Practice Mode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {{
+      font-family: sans-serif;
+      padding: 2rem;
+      text-align: center;
+    }}
+    button {{
+      font-size: 1.1em;
+      padding: 10px 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background-color: #ffc107;
+    }}
+  </style>
+</head>
+<body>
+  <h1>🎓 Practice Mode: {set_name}</h1>
+  <p id="status">Press Start to begin pronunciation practice</p>
+  <button onclick="startPracticeMode()">▶️ Start Practice</button>
+
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+  <script>
+    const cards = {json.dumps(data)};
+    const setName = "{set_name}";
+    let currentIndex = 0;
+    let attempt = 0;
+    let cachedSpeechConfig = null;
+
+    function sanitizeFilename(text) {{
+      return text.replace(/[^a-zA-Z0-9]/g, "_");
+    }}
+
+    function playAudio(filename, cb) {{
+      const audio = new Audio();
+      audio.src = window.location.hostname.includes("github.io")
+        ? `/${{window.location.pathname.split("/")[1]}}/static/${{setName}}/audio/${{filename}}`
+        : `/custom_static/${{setName}}/audio/${{filename}}`;
+      audio.onended = cb;
+      audio.play();
+    }}
+
+    function speak(text, lang, cb) {{
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.onend = cb;
+      speechSynthesis.speak(utter);
+    }}
+
+    async function getSpeechConfig() {{
+      if (cachedSpeechConfig) return cachedSpeechConfig;
+      const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
+      const data = await res.json();
+      const config = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+      config.speechRecognitionLanguage = "pl-PL";
+      cachedSpeechConfig = config;
+      return config;
+    }}
+
+    async function assess(referenceText) {{
+      const speechConfig = await getSpeechConfig();
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+      const assessConfig = new SpeechSDK.PronunciationAssessmentConfig(
+        referenceText,
+        SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+        SpeechSDK.PronunciationAssessmentGranularity.FullText,
+        false
+      );
+      assessConfig.applyTo(recognizer);
+
+      return new Promise((resolve) => {{
+        recognizer.recognized = (s, e) => {{
+          try {{
+            const result = JSON.parse(e.result.json);
+            const score = result.NBest[0].PronunciationAssessment.AccuracyScore;
+            resolve(score);
+          }} catch {{
+            resolve(0);
+          }}
+          recognizer.stopContinuousRecognitionAsync();
+        }};
+        recognizer.startContinuousRecognitionAsync();
+      }});
+    }}
+
+    async function runPractice() {{
+      const card = cards[currentIndex];
+      const filename = `${{currentIndex}}_${{sanitizeFilename(card.phrase)}}.mp3`;
+
+      document.getElementById("status").textContent = `🔈 ${card.meaning} → ${card.phrase}`;
+
+      speak(card.meaning, "en", () => {{
+        playAudio(filename, async () => {{
+          const score = await assess(card.phrase);
+          if (score >= 70 || attempt >= 2) {{
+            document.getElementById("status").textContent = `✅ Score: ${{score.toFixed(1)}}%. Moving on.`;
+            currentIndex++;
+            attempt = 0;
+            if (currentIndex < cards.length) {{
+              setTimeout(runPractice, 2000);
+            }} else {{
+              document.getElementById("status").textContent = "🎉 Practice complete!";
+            }}
+          }} else {{
+            attempt++;
+            document.getElementById("status").textContent = `🔁 Try again. Score: ${{score.toFixed(1)}}%`;
+            setTimeout(runPractice, 1500);
+          }}
+        }});
+      }});
+    }}
+
+    function startPracticeMode() {{
+      currentIndex = 0;
+      attempt = 0;
+      runPractice();
+    }}
+  </script>
+</body>
+</html>
+    """
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 def update_docs_homepage():
     docs_path = Path("docs")
     output_path = docs_path / "output"
+
+    links = "\n".join(
+    f'''
+    <div class="card-link">
+        <a href="output/{s}/flashcards.html">{s} (Flashcards)</a><br>
+        <a href="output/{s}/practice.html">🎓 Practice Mode</a>
+    </div>
+    '''
+    for s in sets
+    )
 
     if not output_path.exists():
         print("⚠️ No sets in docs/output yet — skipping homepage generation.")
@@ -340,6 +489,21 @@ def update_docs_homepage():
 
     print("✅ docs/index.html updated with styled homepage.")
 
+def delete_set_and_push(set_name):
+    paths_to_delete = [
+        os.path.join("docs", "static", set_name),
+        os.path.join("docs", "output", set_name),
+        os.path.join("docs", "sets", set_name),
+    ]
+
+    for path in paths_to_delete:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+    update_docs_homepage()  # 👈 refresh homepage after deletion
+
+    from .git_utils import commit_and_push_changes
+    commit_and_push_changes(f"🗑️ Deleted set: {set_name}")
 
 def generate_flashcard_html(set_name, data):
     output_dir = os.path.join("docs", "output", set_name)
