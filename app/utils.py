@@ -84,11 +84,179 @@ def handle_flashcard_creation(form):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
     generate_flashcard_html(set_name, data)
-    update_docs_homepage()  # ✅ move this ABOVE the commit
+    update_docs_homepage()
     from .git_utils import commit_and_push_changes
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
     return redirect(f"/output/{set_name}/flashcards.html")
+
+def generate_flashcard_html(set_name, data):
+    output_dir = os.path.join("docs", "output", set_name)
+    os.makedirs(output_dir, exist_ok=True)
+    html_path = os.path.join(output_dir, "flashcards.html")
+
+    full_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>{set_name} Flashcards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 20px;
+            background-color: #f8f9fa;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }}
+        h1 {{
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+            text-align: center;
+        }}
+        .home-btn {{
+            position: absolute;
+            right: 0px;
+            top: 0;
+            font-size: 1.4em;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }}
+        .practice-btn {{
+            margin-top: 10px;
+            background-color: #ffc107;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+        }}
+    </style>
+</head>
+<body>
+    <h1>
+        {set_name} Flashcards
+        <button class="home-btn" onclick="goHome()">🏠</button>
+    </h1>
+    <button class="practice-btn" onclick="startPracticeMode()">🎓 Start Practice Mode</button>
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script>
+        const cards = {json.dumps(data)};
+        const setName = "{set_name}";
+        let currentIndex = 0;
+        let isPracticeMode = false;
+        let practiceAttempts = 0;
+        let cachedSpeechConfig = null;
+
+        function sanitizeFilename(text) {{
+            return text.replace(/[^a-zA-Z0-9]/g, "_");
+        }}
+
+        function speak(text, lang, callback) {{
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.onend = callback;
+            speechSynthesis.speak(utterance);
+        }}
+
+        function playAudio(filename, callback) {{
+            const audio = new Audio();
+            audio.src = window.location.hostname === "andrewdionne.github.io" ?
+                `/${{window.location.pathname.split("/")[1]}}/static/${{setName}}/audio/${{filename}}` :
+                `/custom_static/${{setName}}/audio/${{filename}}`;
+            audio.onended = callback;
+            audio.play();
+        }}
+
+        function getAudioFilename(entry) {{
+            return `${{currentIndex}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
+        }}
+
+        async function assessPractice(referenceText) {{
+            const resultDiv = document.createElement("div");
+            if (!window.SpeechSDK) return;
+            const speechConfig = await getSpeechConfig();
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+            const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                referenceText,
+                SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                SpeechSDK.PronunciationAssessmentGranularity.FullText,
+                false
+            );
+            pronunciationConfig.applyTo(recognizer);
+
+            return new Promise(resolve => {{
+                recognizer.recognized = (s, e) => {{
+                    let score = 0;
+                    try {{
+                        const data = JSON.parse(e.result.json);
+                        score = data.NBest[0].PronunciationAssessment.AccuracyScore;
+                    }} catch {{}}
+                    recognizer.stopContinuousRecognitionAsync();
+                    resolve(score);
+                }};
+                recognizer.startContinuousRecognitionAsync();
+            }});
+        }}
+
+        async function runPracticeSequence() {{
+            const entry = cards[currentIndex];
+            const filename = getAudioFilename(entry);
+            speak(entry.meaning, "en", () => {{
+                playAudio(filename, async () => {{
+                    const score = await assessPractice(entry.phrase);
+                    if (score >= 70 || practiceAttempts >= 2) {{
+                        currentIndex++;
+                        practiceAttempts = 0;
+                        if (currentIndex < cards.length) runPracticeSequence();
+                        else alert("🎉 Practice complete!");
+                    }} else {{
+                        practiceAttempts++;
+                        runPracticeSequence();
+                    }}
+                }});
+            }});
+        }}
+
+        function startPracticeMode() {{
+            isPracticeMode = true;
+            currentIndex = 0;
+            practiceAttempts = 0;
+            runPracticeSequence();
+        }}
+
+        async function getSpeechConfig() {{
+            if (cachedSpeechConfig) return cachedSpeechConfig;
+            const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
+            const data = await res.json();
+            const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+            speechConfig.speechRecognitionLanguage = "pl-PL";
+            cachedSpeechConfig = speechConfig;
+            return speechConfig;
+        }}
+
+        function goHome() {{
+            const pathParts = window.location.pathname.split("/");
+            const repo = pathParts[1];
+            window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
+        }}
+    </script>
+</body>
+</html>
+"""
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(full_html)
+
 
 
 def update_docs_homepage():
@@ -523,17 +691,17 @@ async function assessPronunciation(referenceText) {{
 
                     // 📉 Calibrate the score downward slightly
                     const remapScore = (score) => {{
-                        if (score > 96) return score - 6;
-                        if (score > 90) return score - 5;
-                        if (score > 85) return score - 3;
+                        if (score = 100) return score - 0;
+                        if (score < 100) return score - 10;
+                        if (score < 90) return score - 20;
                         return score;
                     }};
                     const finalScore = remapScore(rawScore).toFixed(1);
 
                     // ✨ Visual feedback tiers
                     let feedback = "";
-                    if (finalScore >= 90) {{
-                        feedback = `🌟 Native-like! Score: <strong>${{finalScore}}%</strong>`;
+                    if (finalScore >= 85) {{
+                        feedback = `🌟 Excellent! Score: <strong>${{finalScore}}%</strong>`;
                     }} else if (finalScore >= 75) {{
                         feedback = `✅ Good effort! Score: <strong>${{finalScore}}%</strong>`;
                     }} else {{
