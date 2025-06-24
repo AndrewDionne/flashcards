@@ -76,129 +76,217 @@ def handle_flashcard_creation(form):
     return redirect(f"/output/{set_name}/flashcards.html")
 
 def generate_flashcard_html(set_name, data):
+    import os, json
     output_dir = os.path.join("docs", "output", set_name)
     os.makedirs(output_dir, exist_ok=True)
-    flashcard_html_path = os.path.join(output_dir, "flashcards.html")
-    practice_html_path = os.path.join(output_dir, "practice.html")
+    flashcard_path = os.path.join(output_dir, "flashcards.html")
+    practice_path = os.path.join(output_dir, "practice.html")
 
     cards_json = json.dumps(data)
 
-    shared_head = f"""
-<!DOCTYPE html>
-<html lang=\"en\">
+    # Flashcards Page
+    with open(flashcard_path, "w", encoding="utf-8") as f:
+        f.write(f"""<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset=\"UTF-8\">
-    <title>{set_name} Flashcards</title>
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <style>
-        body {{ font-family: sans-serif; padding: 2rem; }}
-        .card-link {{ margin-bottom: 1rem; }}
-        .flash {{ margin-bottom: 20px; }}
-        .result {{ margin-top: 20px; font-weight: bold; }}
-    </style>
+  <meta charset="UTF-8" />
+  <title>{set_name} Flashcards</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0; padding: 20px;
+      background-color: #f8f9fa;
+      display: flex; flex-direction: column; align-items: center;
+    }}
+    h1 {{
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      text-align: center;
+      width: 100%;
+    }}
+    .home-btn {{
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      font-size: 1.4em;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }}
+    .card {{
+      width: 90%; max-width: 350px; height: 220px;
+      perspective: 1000px;
+      margin: 20px auto;
+    }}
+    .card-inner {{
+      width: 100%; height: 100%;
+      position: relative;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }}
+    .card.flipped .card-inner {{
+      transform: rotateY(180deg);
+    }}
+    .card-front, .card-back {{
+      position: absolute;
+      width: 100%; height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }}
+    .card-front {{ background: #fff; }}
+    .card-back {{ background: #e9ecef; transform: rotateY(180deg); flex-direction: column; }}
+    .card-back button {{
+      margin-top: 12px;
+      padding: 6px 12px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }}
+    .nav-buttons {{
+      margin-top: 10px;
+      display: flex;
+      gap: 15px;
+    }}
+    .practice-btn {{
+      margin-top: 10px;
+      background-color: #ffc107;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+    }}
+  </style>
 </head>
 <body>
-"""
+  <h1>{set_name} Flashcards <button class="home-btn" onclick="goHome()">🏠</button></h1>
+  <button class="practice-btn" onclick="window.location.href='practice.html'">🎓 Practice Mode</button>
 
-    flashcard_body = f"""
-<h1>{set_name} Flashcards</h1>
-<p><a href=\"practice.html\">🎓 Practice Mode</a></p>
-<ul>
-    {''.join(f'<li><strong>{{entry["meaning"]}}</strong>: {{entry["phrase"]}} <em>({{entry["pronunciation"]}})</em></li>' for entry in data)}
-</ul>
-"""
+  <div class="card" id="cardContainer">
+    <div class="card-inner" id="cardInner">
+      <div class="card-front" id="cardFront"></div>
+      <div class="card-back" id="cardBack"></div>
+    </div>
+  </div>
 
-    practice_body = f"""
-<button class=\"flash\" onclick=\"window.location.href='flashcards.html'\">⬅️ Back to Flashcards</button>
-<div id='result' class='result'></div>
-<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-<script>
+  <div class="nav-buttons">
+    <button id="prevBtn">Previous</button>
+    <button id="nextBtn">Next</button>
+  </div>
+
+  <audio id="audioPlayer"><source id="audioSource" src="" type="audio/mpeg" /></audio>
+
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+  <script>
     const cards = {cards_json};
-    let index = 0;
-    let tries = 0;
-    let cachedSpeechConfig = null;
+    const setName = "{set_name}";
+    let currentIndex = 0;
 
-    function speak(text, lang, cb) {{
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = lang;
-        msg.onend = cb;
-        speechSynthesis.speak(msg);
+    function sanitizeFilename(text) {{
+      return text.replace(/[^a-zA-Z0-9]/g, "_");
     }}
 
-    function playAudio(index, cb) {{
-        const phrase = cards[index].phrase;
-        const filename = `${{index}}_${{phrase.replace(/[^a-zA-Z0-9]/g, '_')}}.mp3`;
-        const audio = new Audio();
-        const repo = window.location.pathname.split("/")[1];
-        const basePath = window.location.hostname === "andrewdionne.github.io" ? `/${{window.location.pathname.split("/")[1]}}/` : "/";
-        audio.src = `${{basePath}}static/${{set_name}}/audio/${{filename}}`;
-        audio.onended = cb;
-        audio.play();
+    function updateCard() {{
+      const entry = cards[currentIndex];
+      const filename = `${{currentIndex}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
+      document.getElementById("cardFront").textContent = entry.meaning;
+      document.getElementById("cardBack").innerHTML = `
+        <p>${{entry.phrase}}</p>
+        <p><em>${{entry.pronunciation}}</em></p>
+        <button onclick="playAudio('${{filename}}')">▶️ Play</button>
+        <button onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test</button>
+        <div id="pronunciationResult" style="margin-top:10px; font-size:0.9em;"></div>
+      `;
+      document.getElementById("prevBtn").disabled = currentIndex === 0;
+      document.getElementById("nextBtn").disabled = currentIndex === cards.length - 1;
     }}
 
-    async function getSpeechConfig() {{
-        if (cachedSpeechConfig) return cachedSpeechConfig;
-        const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
-        const data = await res.json();
-        const config = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
-        config.speechRecognitionLanguage = "pl-PL";
-        cachedSpeechConfig = config;
-        return config;
+    function playAudio(filename) {{
+      const audio = document.getElementById("audioPlayer");
+      const source = document.getElementById("audioSource");
+      const repo = window.location.hostname === "andrewdionne.github.io"
+        ? window.location.pathname.split("/")[1]
+        : "";
+      source.src = window.location.hostname === "andrewdionne.github.io"
+        ? `/${{repo}}/static/${{setName}}/audio/${{filename}}`
+        : `/custom_static/${{setName}}/audio/${{filename}}`;
+      audio.load(); audio.play();
     }}
 
-    async function assess(text) {{
-        const resultDiv = document.getElementById("result");
-        const config = await getSpeechConfig();
+    function assessPronunciation(referenceText) {{
+      const resultDiv = document.getElementById("pronunciationResult");
+      if (!window.SpeechSDK) {{
+        resultDiv.innerHTML = "❌ Azure SDK not loaded."; return;
+      }}
+
+      fetch("https://flashcards-5c95.onrender.com/api/token").then(r => r.json()).then(data => {{
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+        speechConfig.speechRecognitionLanguage = "pl-PL";
         const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        const recognizer = new SpeechSDK.SpeechRecognizer(config, audioConfig);
-        const assessConfig = new SpeechSDK.PronunciationAssessmentConfig(text, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark, SpeechSDK.PronunciationAssessmentGranularity.FullText, false);
-        assessConfig.applyTo(recognizer);
-
-        return new Promise(resolve => {{
-            recognizer.recognized = (s, e) => {{
-                let score = 0;
-                try {{
-                    const data = JSON.parse(e.result.json);
-                    score = data.NBest[0].PronunciationAssessment.AccuracyScore;
-                }} catch {{}}
-                recognizer.stopContinuousRecognitionAsync();
-                resolve(score);
-            }};
-            recognizer.startContinuousRecognitionAsync();
-        }});
+        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        const config = new SpeechSDK.PronunciationAssessmentConfig(referenceText, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark, SpeechSDK.PronunciationAssessmentGranularity.FullText, false);
+        config.applyTo(recognizer);
+        recognizer.recognized = (s, e) => {{
+          try {{
+            const res = JSON.parse(e.result.json);
+            const score = res.NBest[0].PronunciationAssessment.AccuracyScore.toFixed(1);
+            resultDiv.innerHTML = score >= 85 ? `🌟 ${{score}}%` : score >= 70 ? `✅ ${{score}}%` : `⚠️ ${{score}}%`;
+          }} catch (err) {{
+            resultDiv.innerHTML = "⚠️ Could not assess.";
+          }}
+          recognizer.stopContinuousRecognitionAsync();
+        }};
+        recognizer.startContinuousRecognitionAsync();
+      }});
     }}
 
-    async function run() {{
-        if (index >= cards.length) {{
-            document.getElementById("result").innerText = "🎉 Practice complete!";
-            return;
-        }}
-        const card = cards[index];
-        speak(card.meaning, "en", () => {{
-            playAudio(index, async () => {{
-                const score = await assess(card.phrase);
-                if (score >= 70 || tries >= 2) {{
-                    index++;
-                    tries = 0;
-                }} else {{
-                    tries++;
-                }}
-                run();
-            }});
-        }});
+    document.getElementById("cardContainer").addEventListener("click", (e) => {{
+      if (!e.target.closest("button")) {{
+        document.getElementById("cardContainer").classList.toggle("flipped");
+      }}
+    }});
+
+    document.getElementById("prevBtn").onclick = () => {{ if (currentIndex > 0) {{ currentIndex--; updateCard(); }} }};
+    document.getElementById("nextBtn").onclick = () => {{ if (currentIndex < cards.length - 1) {{ currentIndex++; updateCard(); }} }};
+
+    function goHome() {{
+      const pathParts = window.location.pathname.split("/");
+      const repo = pathParts[1];
+      window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
     }}
 
-    run();
-</script>
+    updateCard();
+  </script>
 </body>
 </html>
-"""
+""")
 
-    with open(flashcard_html_path, "w", encoding="utf-8") as f:
-        f.write(shared_head + flashcard_body)
+    # Practice Page (just a placeholder fix for now)
+    with open(practice_path, "w", encoding="utf-8") as f:
+        f.write(f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>{set_name} Practice</title></head>
+<body>
+<h1>{set_name} Practice Mode</h1>
+<script>
+alert("🚧 Practice mode still needs script-based layout. Coming next.");
+</script>
+</body></html>""")
 
-    with open(practice_html_path, "w", encoding="utf-8") as f:
-        f.write(shared_head + practice_body)
+    print(f"✅ Flashcard + practice HTML generated for {set_name}")
+    
+
+    #with open(flashcard_path, "w", encoding="utf-8") as f:
+        #f.write(shared_head + flashcard_body)
 
 def update_docs_homepage():
     docs_path = Path("docs")
