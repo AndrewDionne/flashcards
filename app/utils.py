@@ -77,16 +77,20 @@ def handle_flashcard_creation(form):
 
 def generate_flashcard_html(set_name, data):
     import os, json
+
+    # Ensure output directory
     output_dir = os.path.join("docs", "output", set_name)
     os.makedirs(output_dir, exist_ok=True)
+
+    # Define file paths
     flashcard_path = os.path.join(output_dir, "flashcards.html")
     practice_path = os.path.join(output_dir, "practice.html")
 
-    cards_json = json.dumps(data)
+    # Prepare data
+    cards_json = json.dumps(data, ensure_ascii=False)
 
-    # Flashcards Page
-    with open(flashcard_path, "w", encoding="utf-8") as f:
-        f.write(f"""<!DOCTYPE html>
+    # Flashcard HTML
+    flashcard_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -342,24 +346,89 @@ def generate_flashcard_html(set_name, data):
   </script>
 </body>
 </html>
-""")
+"""
 
-    # Practice Page (just a placeholder fix for now)
-    with open(practice_path, "w", encoding="utf-8") as f:
-        f.write(f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>{set_name} Practice</title></head>
+    practice_html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>{set_name} Practice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {{
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+        }}
+        .flash {{
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }}
+        .result {{
+            font-size: 1.2em;
+            margin-top: 20px;
+        }}
+    </style>
+</head>
 <body>
-<h1>{set_name} Practice Mode</h1>
-<script>
-alert("🚧 Practice mode still needs script-based layout. Coming next.");
-</script>
-</body></html>""")
+    <h1>{set_name} Practice Mode</h1>
+    <button class="flash" onclick="window.location.href='flashcards.html'">⬅️ Back to Flashcards</button>
+    <div id="result" class="result"></div>
 
-    print(f"✅ Flashcard + practice HTML generated for {set_name}")
-    
+    <script>
+        const cards = {cards_json};
+        let index = 0;
 
-    #with open(flashcard_path, "w", encoding="utf-8") as f:
-        #f.write(shared_head + flashcard_body)
+        function speak(text, lang, cb) {{
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = lang;
+            u.onend = cb;
+            speechSynthesis.speak(u);
+        }}
+
+        function playAudio(file, cb) {{
+            const audio = new Audio(file);
+            audio.onended = cb;
+            audio.play();
+        }}
+
+        function runPractice() {{
+            const entry = cards[index];
+            const audioFile = `../../static/{set_name}/audio/${{index}}_${{entry.phrase.replace(/[^a-zA-Z0-9]/g, "_")}}.mp3`;
+
+            speak(entry.meaning, "en-US", () => {{
+                playAudio(audioFile, () => {{
+                    document.getElementById("result").textContent = `${{entry.meaning}}: ${{entry.phrase}} (${{entry.pronunciation}})`;
+                    index++;
+                    if (index < cards.length) {{
+                        setTimeout(runPractice, 2000);
+                    }} else {{
+                        document.getElementById("result").textContent = "✅ Practice complete!";
+                    }}
+                }});
+            }});
+        }}
+
+        document.addEventListener("DOMContentLoaded", runPractice);
+    </script>
+</body>
+</html>
+"""
+
+    # Write both HTML files
+    with open(flashcard_path, "w", encoding="utf-8") as f:
+        f.write(flashcard_html)
+
+    with open(practice_path, "w", encoding="utf-8") as f:
+        f.write(practice_html)
+
+    print(f"✅ Generated flashcards and practice pages for: {set_name}")
 
 def update_docs_homepage():
     docs_path = Path("docs")
