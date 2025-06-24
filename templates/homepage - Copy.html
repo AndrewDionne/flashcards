@@ -25,7 +25,6 @@
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 12px;
     }
@@ -44,18 +43,6 @@
     .meta {
       font-size: 0.9em;
       color: #666;
-    }
-    .link-row {
-      margin-top: 5px;
-    }
-    .link-row a {
-      margin-right: 15px;
-      font-size: 0.95em;
-      color: #28a745;
-      text-decoration: none;
-    }
-    .link-row a:hover {
-      text-decoration: underline;
     }
     .actions {
       margin-top: 30px;
@@ -90,18 +77,10 @@
       <li>
         <input type="checkbox" class="set-checkbox" value="{{ set.name }}">
         <div class="set-info">
-          <div>
-            <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
-              ▶ {{ set.name }}
-            </a>
-            {% if set.count != "?" %}
-              <span class="meta">({{ set.count }} cards)</span>
-            {% endif %}
-          </div>
-          <div class="link-row">
-            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">🧠 Flashcards</a>
-            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/practice.html') }}">🎤 Practice Mode</a>
-          </div>
+          <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
+            ▶ {{ set.name }}
+          </a><br>
+          
         </div>
       </li>
       {% endfor %}
@@ -143,4 +122,3 @@
   </script>
 </body>
 </html>
-
