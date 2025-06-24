@@ -311,50 +311,17 @@ def generate_flashcard_html(set_name, data):
         config.applyTo(recognizer);
         recognizer.recognized = (s, e) => {{
           try {{
-                const data = JSON.parse(e.result.json);
-                console.log("Azure heard:", e.result.text);
-
-                const nbest = data.NBest;
-                if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
-                    resultDiv.innerHTML = "❌ No valid pronunciation result.";
-                }} else {{
-                    let rawScore = nbest[0].PronunciationAssessment.AccuracyScore;
-
-                    // 📉 Calibrate the score downward slightly
-                    const remapScore = (score) => {{
-                        if (score = 100) return score - 0;
-                        if (score < 100) return score - 10;
-                        if (score < 90) return score - 20;
-                        return score;
-                    }};
-                    const finalScore = remapScore(rawScore).toFixed(1);
-
-                    // ✨ Visual feedback tiers
-                    let feedback = "";
-                    if (finalScore >= 85) {{
-                        feedback = `🌟 Excellent! Score: <strong>${{finalScore}}%</strong>`;
-                    }} else if (finalScore >= 75) {{
-                        feedback = `✅ Good effort! Score: <strong>${{finalScore}}%</strong>`;
-                    }} else {{
-                        feedback = `⚠️ Needs practice. Score: <strong>${{finalScore}}%</strong>`;
-                    }}
-
-                    resultDiv.innerHTML = feedback;
-                }}
-            }} catch (err) {{
-                console.error("JSON parsing error:", err);
-                resultDiv.innerHTML = "⚠️ Error processing Azure response.";
-            }}
-
-            recognizer.stopContinuousRecognitionAsync();
+            const res = JSON.parse(e.result.json);
+            const score = res.NBest[0].PronunciationAssessment.AccuracyScore.toFixed(1);
+            resultDiv.innerHTML = score >= 85 ? `🌟 ${{score}}%` : score >= 70 ? `✅ ${{score}}%` : `⚠️ ${{score}}%`;
+          }} catch (err) {{
+            resultDiv.innerHTML = "⚠️ Could not assess.";
+          }}
+          recognizer.stopContinuousRecognitionAsync();
         }};
-
         recognizer.startContinuousRecognitionAsync();
-    }} catch (error) {{
-        console.error("Azure error:", error);
-        resultDiv.innerHTML = "❌ Could not assess pronunciation.";
+      }});
     }}
-}}
 
     document.getElementById("cardContainer").addEventListener("click", (e) => {{
       if (!e.target.closest("button")) {{
