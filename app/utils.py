@@ -379,11 +379,15 @@ def generate_flashcard_html(set_name, data):
 <body>
     <h1>{set_name} Practice Mode</h1>
     <button class="flash" onclick="window.location.href='flashcards.html'">⬅️ Back to Flashcards</button>
-    <div id="result" class="result"></div>
+    <div id="result" class="result">🎙 Get ready to practice...</div>
 
     <script>
         const cards = {cards_json};
         let index = 0;
+
+        function sanitize(text) {{
+            return text.replace(/[^a-zA-Z0-9]/g, '_');
+        }}
 
         function speak(text, lang, cb) {{
             const u = new SpeechSynthesisUtterance(text);
@@ -400,19 +404,20 @@ def generate_flashcard_html(set_name, data):
 
         function runPractice() {{
             const entry = cards[index];
-            const audioFile = `../../static/{set_name}/audio/${{index}}_${{entry.phrase.replace(/[^a-zA-Z0-9]/g, "_")}}.mp3`;
-
-            speak(entry.meaning, "en-US", () => {{
-                playAudio(audioFile, () => {{
-                    document.getElementById("result").textContent = `${{entry.meaning}}: ${{entry.phrase}} (${{entry.pronunciation}})`;
-                    index++;
-                    if (index < cards.length) {{
-                        setTimeout(runPractice, 2000);
-                    }} else {{
-                        document.getElementById("result").textContent = "✅ Practice complete!";
-                    }}
-                }});
-            }});
+            const file = `../../static/{set_name}/audio/${index}_${sanitize(entry.phrase)}.mp3`;
+            speak(entry.meaning, "en-US", () => {
+                playAudio(file, () => {
+                    speak(entry.phrase, "pl-PL", () => {
+                        document.getElementById("result").textContent = `${entry.meaning}: ${entry.phrase} (${entry.pronunciation})`;
+                        index++;
+                        if (index < cards.length) {
+                            setTimeout(runPractice, 3000);
+                        } else {
+                            document.getElementById("result").textContent = "✅ Practice complete!";
+                        }
+                    });
+                });
+            });
         }}
 
         document.addEventListener("DOMContentLoaded", runPractice);
@@ -421,7 +426,6 @@ def generate_flashcard_html(set_name, data):
 </html>
 """
 
-    # Write both HTML files
     with open(flashcard_path, "w", encoding="utf-8") as f:
         f.write(flashcard_html)
 
