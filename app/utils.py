@@ -92,81 +92,152 @@ def generate_flashcard_html(set_name, data):
   <meta charset="UTF-8" />
   <title>{set_name} Flashcards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {{
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0; padding: 20px;
-      background-color: #f8f9fa;
-      display: flex; flex-direction: column; align-items: center;
-    }}
-    h1 {{
-      font-size: 1.5em;
-      margin-bottom: 10px;
-      text-align: center;
-      width: 100%;
-    }}
-    .home-btn {{
-      position: absolute;
-      right: 20px;
-      top: 10px;
-      font-size: 1.4em;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }}
-    .card {{
-      width: 90%; max-width: 350px; height: 220px;
-      perspective: 1000px;
-      margin: 20px auto;
-    }}
-    .card-inner {{
-      width: 100%; height: 100%;
-      position: relative;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      cursor: pointer;
-    }}
-    .card.flipped .card-inner {{
-      transform: rotateY(180deg);
-    }}
-    .card-front, .card-back {{
-      position: absolute;
-      width: 100%; height: 100%;
-      backface-visibility: hidden;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }}
-    .card-front {{ background: #fff; }}
-    .card-back {{ background: #e9ecef; transform: rotateY(180deg); flex-direction: column; }}
-    .card-back button {{
-      margin-top: 12px;
-      padding: 6px 12px;
-      background-color: #28a745;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      cursor: pointer;
-    }}
-    .nav-buttons {{
-      margin-top: 10px;
-      display: flex;
-      gap: 15px;
-    }}
-    .practice-btn {{
-      margin-top: 10px;
-      background-color: #ffc107;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 1em;
-      cursor: pointer;
-    }}
-  </style>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 20px;
+            background-color: #f8f9fa;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
+        }}
+        h1 {{
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+            text-align: center;
+        }}
+        
+        .home-btn {{
+            position: absolute;
+            right: 0px;
+            top: 0;
+            font-size: 1.4em;
+            background: none;
+            border: none;
+            cursor: pointer;
+            }}
+
+        .card {{
+            width: 90%;
+            max-width: 350px;
+            height: 220px;
+            perspective: 1000px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }}
+
+        .card-inner {{
+            width: 100%; 
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+
+        }}
+        .card.flipped .card-inner {{
+            transform: rotateY(180deg);
+        }}
+        .card-front, .card-back {{
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
+        }}
+        .card-front {{
+            background: #ffffff;
+            font-size: 1.1em;
+            font-weight: normal;
+            text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }}
+        .card-back {{
+            min-height: 100%;
+            background: #e9ecef;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            font-size: 1.1em;
+            text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            flex-direction: column
+            justify-content: center;
+            align-items: center;
+        }}
+        .card-back button {{
+            margin-top: auto; /* Pushes it to the bottom of the column */
+            margin-bottom: 20px; /* Optional spacing from bottom */
+            padding: 8px 16px;
+            font-size: 1em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }}
+        .nav-buttons {{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }}
+
+        .nav-button {{
+        padding: 6px 12px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100px;
+            height: 30px;
+            cursor: pointer;
+        }}
+        .play-audio-button {{
+            margin-bottom: 10px;
+            padding: 4px 10px;
+            font-size: 0.9em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            width: auto; /* or a fixed smaller width */
+            height: auto;
+        }}
+
+        button {{
+            border: none;
+            cursor: pointer;
+        
+        }}
+        .nav-button:disabled {{
+            background-color: #aaa;
+            cursor: default;
+        }}
+    </style>
 </head>
 <body>
   <h1>{set_name} Flashcards <button class="home-btn" onclick="goHome()">🏠</button></h1>
@@ -232,23 +303,58 @@ def generate_flashcard_html(set_name, data):
       fetch("https://flashcards-5c95.onrender.com/api/token").then(r => r.json()).then(data => {{
         const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
         speechConfig.speechRecognitionLanguage = "pl-PL";
+        speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "3000");
+        speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
         const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
         const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
         const config = new SpeechSDK.PronunciationAssessmentConfig(referenceText, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark, SpeechSDK.PronunciationAssessmentGranularity.FullText, false);
         config.applyTo(recognizer);
         recognizer.recognized = (s, e) => {{
           try {{
-            const res = JSON.parse(e.result.json);
-            const score = res.NBest[0].PronunciationAssessment.AccuracyScore.toFixed(1);
-            resultDiv.innerHTML = score >= 85 ? `🌟 ${{score}}%` : score >= 70 ? `✅ ${{score}}%` : `⚠️ ${{score}}%`;
-          }} catch (err) {{
-            resultDiv.innerHTML = "⚠️ Could not assess.";
-          }}
-          recognizer.stopContinuousRecognitionAsync();
+                const data = JSON.parse(e.result.json);
+                console.log("Azure heard:", e.result.text);
+
+                const nbest = data.NBest;
+                if (!nbest || !nbest.length || !nbest[0].PronunciationAssessment) {{
+                    resultDiv.innerHTML = "❌ No valid pronunciation result.";
+                }} else {{
+                    let rawScore = nbest[0].PronunciationAssessment.AccuracyScore;
+
+                    // 📉 Calibrate the score downward slightly
+                    const remapScore = (score) => {{
+                        if (score = 100) return score - 0;
+                        if (score < 100) return score - 10;
+                        if (score < 90) return score - 20;
+                        return score;
+                    }};
+                    const finalScore = remapScore(rawScore).toFixed(1);
+
+                    // ✨ Visual feedback tiers
+                    let feedback = "";
+                    if (finalScore >= 85) {{
+                        feedback = `🌟 Excellent! Score: <strong>${{finalScore}}%</strong>`;
+                    }} else if (finalScore >= 75) {{
+                        feedback = `✅ Good effort! Score: <strong>${{finalScore}}%</strong>`;
+                    }} else {{
+                        feedback = `⚠️ Needs practice. Score: <strong>${{finalScore}}%</strong>`;
+                    }}
+
+                    resultDiv.innerHTML = feedback;
+                }}
+            }} catch (err) {{
+                console.error("JSON parsing error:", err);
+                resultDiv.innerHTML = "⚠️ Error processing Azure response.";
+            }}
+
+            recognizer.stopContinuousRecognitionAsync();
         }};
+
         recognizer.startContinuousRecognitionAsync();
-      }});
+    }} catch (error) {{
+        console.error("Azure error:", error);
+        resultDiv.innerHTML = "❌ Could not assess pronunciation.";
     }}
+}}
 
     document.getElementById("cardContainer").addEventListener("click", (e) => {{
       if (!e.target.closest("button")) {{
