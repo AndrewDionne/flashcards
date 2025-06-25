@@ -404,27 +404,28 @@ def generate_flashcard_html(set_name, data):
 
         function runPractice() {{
             const entry = cards[index];
-            const file = `../../static/{set_name}/audio/${index}_${sanitize(entry.phrase)}.mp3`;
-            speak(entry.meaning, "en-US", () => {
-                playAudio(file, () => {
-                    speak(entry.phrase, "pl-PL", () => {
-                        document.getElementById("result").textContent = `${entry.meaning}: ${entry.phrase} (${entry.pronunciation})`;
+            const file = `../../static/{set_name}/audio/${{index}}_${{sanitize(entry.phrase)}}.mp3`;
+            speak(entry.meaning, "en-US", function() {{
+                playAudio(file, function() {{
+                    speak(entry.phrase, "pl-PL", function() {{
+                        document.getElementById("result").textContent =
+                            `${{entry.meaning}}: ${{entry.phrase}} (${{entry.pronunciation}})`;
                         index++;
-                        if (index < cards.length) {
+                        if (index < cards.length) {{
                             setTimeout(runPractice, 3000);
-                        } else {
+                        }} else {{
                             document.getElementById("result").textContent = "✅ Practice complete!";
-                        }
-                    });
-                });
-            });
+                        }}
+                    }});
+                }});
+            }});
         }}
 
         document.addEventListener("DOMContentLoaded", runPractice);
     </script>
 </body>
 </html>
-"""
+""".format(set_name=set_name, cards_json=cards_json)
 
     with open(flashcard_path, "w", encoding="utf-8") as f:
         f.write(flashcard_html)
