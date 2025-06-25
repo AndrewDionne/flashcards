@@ -381,48 +381,139 @@ def generate_flashcard_html(set_name, data):
     <button class="flash" onclick="window.location.href='flashcards.html'">⬅️ Back to Flashcards</button>
     <div id="result" class="result">🎙 Get ready to practice...</div>
 
-    <script>
-        const cards = {cards_json};
-        let index = 0;
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script>
+    const cards = {cards_json};
+    const setName = "{set_name}";
+    let index = 0;
+    let attempts = 0;
+    let cachedSpeechConfig = null;
 
-        function sanitize(text) {{
-            return text.replace(/[^a-zA-Z0-9]/g, '_');
+    function sanitize(text) {{
+        return text.replace(/[^a-zA-Z0-9]/g, '_');
+    }}
+
+    function speak(text, lang, callback) {{
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.onend = callback;
+        speechSynthesis.speak(utterance);
+    }}
+
+    function playAudio(filename, callback) {{
+        let src;
+        if (window.location.hostname === "andrewdionne.github.io") {{
+            const repo = window.location.pathname.split("/")[1];
+            src = `/${{repo}}/static/${{setName}}/audio/${{filename}}`;
+        }} else {{
+            src = `/custom_static/${{setName}}/audio/${{filename}}`;
+        }}
+        const audio = new Audio(src);
+        audio.onended = callback;
+        audio.play();
+    }}
+
+    async function assessPronunciation(referenceText) {{
+        const resultDiv = document.getElementById("result");
+        if (!window.SpeechSDK) {{
+            resultDiv.textContent = "❌ Azure SDK not loaded.";
+            return 0;
         }}
 
-        function speak(text, lang, cb) {{
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang;
-            u.onend = cb;
-            speechSynthesis.speak(u);
+        try {{
+            const speechConfig = await getSpeechConfig();
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+            const pronunciationConfig = new SpeechSDK.PronunciationAssessmentConfig(
+                referenceText,
+                SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+                SpeechSDK.PronunciationAssessmentGranularity.FullText,
+                false
+            );
+            pronunciationConfig.applyTo(recognizer);
+
+            resultDiv.textContent = "🎙 Listening...";
+
+            return new Promise(resolve => {{
+                recognizer.recognized = function (s, e) {{
+                    if (!e.result || !e.result.json) {{
+                        resultDiv.textContent = "⚠️ Recognition error.";
+                        return resolve(0);
+                    }}
+
+                    const data = JSON.parse(e.result.json);
+                    const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
+
+                    // Visual feedback
+                    let feedback = "";
+                    if (score >= 85) {{
+                        feedback = `🌟 Excellent! Score: ${{score.toFixed(1)}}%`;
+                    }} else if (score >= 70) {{
+                        feedback = `✅ Good job! Score: ${{score.toFixed(1)}}%`;
+                    }} else {{
+                        feedback = `⚠️ Try again. Score: ${{score.toFixed(1)}}%`;
+                    }}
+
+                    resultDiv.innerHTML = feedback;
+                    recognizer.stopContinuousRecognitionAsync();
+                    resolve(score);
+                }};
+
+                recognizer.startContinuousRecognitionAsync();
+            }});
+
+        }} catch (err) {{
+            console.error("Azure error:", err);
+            document.getElementById("result").textContent = "❌ Could not assess pronunciation.";
+            return 0;
+        }}
+    }}
+
+    async function getSpeechConfig() {{
+        if (cachedSpeechConfig) return cachedSpeechConfig;
+        const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
+        const data = await res.json();
+
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+        speechConfig.speechRecognitionLanguage = "pl-PL";
+        speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "3000");
+        speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
+
+        cachedSpeechConfig = speechConfig;
+        return speechConfig;
+    }}
+
+    async function runPractice() {{
+        if (index >= cards.length) {{
+            document.getElementById("result").textContent = "✅ Practice complete!";
+            return;
         }}
 
-        function playAudio(file, cb) {{
-            const audio = new Audio(file);
-            audio.onended = cb;
-            audio.play();
-        }}
+        const entry = cards[index];
+        const filename = `${{index}}_${{sanitize(entry.phrase)}}.mp3`;
 
-        function runPractice() {{
-            const entry = cards[index];
-            const file = `../../static/{set_name}/audio/${{index}}_${{sanitize(entry.phrase)}}.mp3`;
-            speak(entry.meaning, "en-US", function() {{
-                playAudio(file, function() {{
-                    speak(entry.phrase, "pl-PL", function() {{
-                        document.getElementById("result").textContent =
-                            `${{entry.meaning}}: ${{entry.phrase}} (${{entry.pronunciation}})`;
+        speak(entry.meaning, "en-US", () => {{
+            playAudio(filename, () => {{
+                speak(entry.phrase, "pl-PL", async () => {{
+                    const score = await assessPronunciation(entry.phrase);
+
+                    if (score >= 70 || attempts >= 2) {{
                         index++;
-                        if (index < cards.length) {{
-                            setTimeout(runPractice, 3000);
-                        }} else {{
-                            document.getElementById("result").textContent = "✅ Practice complete!";
-                        }}
-                    }});
+                        attempts = 0;
+                        setTimeout(runPractice, 2000);
+                    }} else {{
+                        attempts++;
+                        document.getElementById("result").innerHTML += "<br>🔁 Trying again...";
+                        setTimeout(runPractice, 2500);
+                    }}
                 }});
             }});
-        }}
+        }});
+    }}
 
-        document.addEventListener("DOMContentLoaded", runPractice);
-    </script>
+    document.addEventListener("DOMContentLoaded", runPractice);
+</script>
 </body>
 </html>
 """.format(set_name=set_name, cards_json=cards_json)
