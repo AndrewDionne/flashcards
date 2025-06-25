@@ -3,7 +3,6 @@ import os, json, shutil
 from .utils import sanitize_filename, generate_flashcard_html, load_sets_with_counts, handle_flashcard_creation
 from .git_utils import commit_and_push_changes, delete_set_and_push
 from flask import send_file
-from flask import send_file
 from pathlib import Path
 
 def init_routes(app):
@@ -39,9 +38,16 @@ def init_routes(app):
 
         return send_file(full_path)
 
-    @app.route("/audio/<filename>")
-    def serve_audio(filename):
-        return send_from_directory("audio", filename)
+    @app.route("/docs")
+    def serve_docs_home():
+        docs_index = Path(__file__).resolve().parent.parent / "docs" / "index.html"
+        if not docs_index.exists():
+            return "Homepage not found", 404
+        return send_file(docs_index)
+    
+    #@app.route("/audio/<filename>")
+    #def serve_audio(filename):
+        #return send_from_directory("audio", filename)
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
@@ -58,6 +64,12 @@ def init_routes(app):
             return "File not found", 404
 
         return send_file(full_path)
+    @app.route("/practice/<set_name>")
+    def serve_practice_page(set_name):
+        practice_path = Path(__file__).resolve().parent.parent / "docs" / "output" / set_name / "practice.html"
+        if not practice_path.exists():
+            return "Practice page not found", 404
+        return send_file(practice_path)
 
     #@app.route("/output/<path:filename>")
     #def serve_output_file(filename):
@@ -66,6 +78,7 @@ def init_routes(app):
     @app.route("/delete_set/<set_name>", methods=["POST"])
     def delete_set(set_name):
         delete_set_and_push(set_name)
+        update_docs_homepage()  # ✅ add this line
         return redirect(url_for('homepage'))
 
     @app.route("/delete_sets", methods=["POST"])

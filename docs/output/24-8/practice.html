@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>24-8 Practice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+        }
+        .flash {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .result {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>24-8 Practice Mode</h1>
+    <button class="flash" onclick="window.location.href='flashcards.html'">⬅️ Back to Flashcards</button>
+    <div id="result" class="result">🎙 Get ready to practice...</div>
+
+    <script>
+        const cards = [{"phrase": "Dziękuję", "pronunciation": "jen-KOO-yeh", "meaning": "Thank you"}, {"phrase": "Przepraszam", "pronunciation": "psheh-PRAH-shahm", "meaning": "Sorry/Excuse me"}, {"phrase": "Proszę powtórzyć!", "pronunciation": "PROH-sheh pohv-TOO-zheetch", "meaning": "Please repeat!"}, {"phrase": "Co to znaczy", "pronunciation": "tso toh ZNAH-chee", "meaning": "What does it mean?"}, {"phrase": "Tak", "pronunciation": "tahk", "meaning": "Yes"}, {"phrase": "Nie", "pronunciation": "nyeh", "meaning": "No"}, {"phrase": "Nie wiem", "pronunciation": "nyeh VYEM", "meaning": "I don't know"}, {"phrase": "Proszę napisać!", "pronunciation": "PROH-sheh nah-PEE-sahtch", "meaning": "Please write it down!"}, {"phrase": "Gdzie jest toaleta", "pronunciation": "g-jeh yest toh-ah-LEH-tah", "meaning": "Where is the toilet?"}, {"phrase": "Proszę mówić wolniej", "pronunciation": "PROH-sheh MOO-veech VOL-nyeh", "meaning": "Please speak more slowly"}, {"phrase": "Mam pytanie", "pronunciation": "mahm pih-TAH-nyeh", "meaning": "I have a question"}, {"phrase": "Nie rozumiem", "pronunciation": "nyeh roh-ZOO-myem", "meaning": "I don't understand"}];
+        let index = 0;
+
+        function sanitize(text) {
+            return text.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+
+        function speak(text, lang, cb) {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = lang;
+            u.onend = cb;
+            speechSynthesis.speak(u);
+        }
+
+        function playAudio(file, cb) {
+            const audio = new Audio(file);
+            audio.onended = cb;
+            audio.play();
+        }
+
+        function runPractice() {
+            const entry = cards[index];
+            const file = `../../static/24-8/audio/${index}_${sanitize(entry.phrase)}.mp3`;
+            speak(entry.meaning, "en-US", function() {
+                playAudio(file, function() {
+                    speak(entry.phrase, "pl-PL", function() {
+                        document.getElementById("result").textContent =
+                            `${entry.meaning}: ${entry.phrase} (${entry.pronunciation})`;
+                        index++;
+                        if (index < cards.length) {
+                            setTimeout(runPractice, 3000);
+                        } else {
+                            document.getElementById("result").textContent = "✅ Practice complete!";
+                        }
+                    });
+                });
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", runPractice);
+    </script>
+</body>
+</html>
