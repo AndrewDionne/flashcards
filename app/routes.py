@@ -75,11 +75,11 @@ def init_routes(app):
     #def serve_output_file(filename):
         #return send_from_directory("output", filename)
 
-    @app.route("/delete_set/<set_name>", methods=["POST"])
-    def delete_set(set_name):
-        delete_set_and_push(set_name)
-        update_docs_homepage()  # ✅ add this line
-        return redirect(url_for('homepage'))
+    #@app.route("/delete_set/<set_name>", methods=["POST"])
+    #def delete(set_name):
+        #delete_set_and_push(set_name)
+        #update_docs_homepage()  # ✅ add this line
+        #return redirect(url_for('homepage'))
 
     @app.route("/delete_sets", methods=["POST"])
     def delete_sets():
