@@ -94,8 +94,8 @@ def init_routes(app):
         if not sets_to_delete:
             return jsonify(success=False, message="No sets specified."), 400
 
-        for set_name in sets_to_delete:
-            print(f"🧹 Deleting set: {set_name}")
-            delete_set_and_push(set_name)
+        from .git_utils import delete_multiple_sets_and_push
+
+        delete_multiple_sets_and_push(sets_to_delete)
 
         return jsonify(success=True)
