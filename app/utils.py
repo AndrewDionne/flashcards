@@ -446,6 +446,13 @@ function playAudio(filename, callback) {{
   }}, 5000);
 }}
 
+function adjustScore(score) {{
+  if (score >= 95) return score - 5;
+  if (score >= 90) return score - 7;
+  if (score >= 80) return score - 10;
+  return score - 12;
+}}
+
 async function assessPronunciation(referenceText) {{
   const resultDiv = document.getElementById("result");
 
