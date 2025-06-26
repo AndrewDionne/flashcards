@@ -52,10 +52,14 @@ def delete_set(set_name):
     for path in [output_dir, static_dir, sets_dir]:
         if path.exists():
             shutil.rmtree(path)
+            print(f"🧹 Deleted folder: {path}")
+        else:
+            print(f"⚠️ Folder not found: {path}")
 
     update_docs_homepage()
     commit_and_push_changes(f"🗑️ Deleted set: {set_name}")
     print(f"✅ Deleted set: {set_name}")
+    
 def delete_set_and_push(set_name):
     delete_set(set_name)
 
