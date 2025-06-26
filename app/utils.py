@@ -548,7 +548,7 @@ async function runPractice() {{
         }}
       }});
     }});
-  }});
+  }}
 
 
 document.addEventListener("DOMContentLoaded", runPractice);
