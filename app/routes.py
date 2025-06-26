@@ -90,10 +90,12 @@ def init_routes(app):
     def delete_sets():
         data = request.get_json()
         sets_to_delete = data.get('sets', [])
+        print("🗑 Requested to delete:", sets_to_delete)
         if not sets_to_delete:
             return jsonify(success=False, message="No sets specified."), 400
 
         for set_name in sets_to_delete:
+            print(f"🧹 Deleting set: {set_name}")
             delete_set_and_push(set_name)
 
         return jsonify(success=True)
