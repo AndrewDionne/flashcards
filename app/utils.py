@@ -511,8 +511,8 @@ async function getSpeechConfig() {{
   const data = await res.json();
   const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
   speechConfig.speechRecognitionLanguage = "pl-PL";
-  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "2000");
-  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
+  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "1500");
+  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "800");
   cachedSpeechConfig = speechConfig;
   return speechConfig;
 }}
@@ -532,9 +532,9 @@ async function runPractice() {{
 
   speak(entry.meaning, "en-US", () => {{
     resultDiv.innerHTML = "🎧 Playing audio...";
-    playAudio(filename, () => {{
-      resultDiv.innerHTML = "🗣️ Now say: " + entry.phrase;
-      speak(entry.phrase, "pl-PL", async () => {{
+    playAudio(filename, async() => {{
+      //resultDiv.innerHTML = "🗣️ Now say: " + entry.phrase;
+      //speak(entry.phrase, "pl-PL", async () => {{
         const score = await assessPronunciation(entry.phrase);
 
         if (score >= 70 || attempts >= 2) {{
@@ -549,7 +549,7 @@ async function runPractice() {{
       }});
     }});
   }});
-}}
+
 
 document.addEventListener("DOMContentLoaded", runPractice);
 </script>
