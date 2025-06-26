@@ -447,9 +447,9 @@ function playAudio(filename, callback) {{
 }}
 
 function adjustScore(score) {{
-  if (score >= 95) return score - 5;
-  if (score >= 90) return score - 7;
-  if (score >= 80) return score - 10;
+  if (score = 100) return score ;
+  if (score <= 99) return score - 9;
+  if (score <= 80) return score - 10;
   return score - 12;
 }}
 
@@ -474,7 +474,7 @@ async function assessPronunciation(referenceText) {{
     );
     config.applyTo(recognizer);
 
-    resultDiv.textContent = "🎙 Speak now...";
+    resultDiv.innerHTML = `🎙 Speak: <strong>${{referenceText}}</strong>`;
 
     return new Promise(resolve => {{
       recognizer.recognized = (s, e) => {{
