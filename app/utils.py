@@ -56,6 +56,8 @@ def delete_set(set_name):
     update_docs_homepage()
     commit_and_push_changes(f"🗑️ Deleted set: {set_name}")
     print(f"✅ Deleted set: {set_name}")
+def delete_set_and_push(set_name):
+    delete_set(set_name)
 
 def handle_flashcard_creation(form):
     set_name = form["set_name"].strip()
