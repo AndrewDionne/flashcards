@@ -42,6 +42,21 @@ def get_azure_token():
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
+def delete_set(set_name):
+    from .git_utils import commit_and_push_changes
+
+    output_dir = Path("docs/output") / set_name
+    static_dir = Path("docs/static") / set_name
+    sets_dir = Path("docs/sets") / set_name
+
+    for path in [output_dir, static_dir, sets_dir]:
+        if path.exists():
+            shutil.rmtree(path)
+
+    update_docs_homepage()
+    commit_and_push_changes(f"🗑️ Deleted set: {set_name}")
+    print(f"✅ Deleted set: {set_name}")
+
 def handle_flashcard_creation(form):
     set_name = form["set_name"].strip()
     json_input = form["json_input"].strip()

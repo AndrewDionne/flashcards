@@ -71,6 +71,11 @@ def init_routes(app):
             return "Practice page not found", 404
         return send_file(practice_path)
 
+    @app.route("/delete/<set_name>", methods=["POST"])
+    def delete(set_name):
+        delete_set(set_name)
+        return redirect("/")
+
     #@app.route("/output/<path:filename>")
     #def serve_output_file(filename):
         #return send_from_directory("output", filename)
