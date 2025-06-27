@@ -91,16 +91,15 @@
         <input type="checkbox" class="set-checkbox" value="{{ set.name }}">
         <div class="set-info">
           <div>
-            <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
-              ▶ {{ set.name }}
-            </a>
-            {% if set.count != "?" %}
-              <span class="meta">({{ set.count }} cards)</span>
-            {% endif %}
-          </div>
+           <a class="set-title" href="{{ url_for('serve_output_file', filename=set.name ~ '/' ~ mode ~ '.html') }}">
+            ▶ {{ set.name }}
+          </a>
           <div class="link-row">
             <a href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">🧠 Flashcards</a>
-            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/practice.html') }}">🎤 Practice Mode</a>
+            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/practice.html') }}">🎤 Practice</a>
+            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/reading.html') }}">📖 Reading</a>
+            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/listening.html') }}">🎧 Listening</a>
+            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/test.html') }}">🧪 Test</a>
           </div>
         </div>
       </li>

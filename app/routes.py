@@ -4,23 +4,45 @@ from .utils import sanitize_filename, generate_flashcard_html, load_sets_with_co
 from .git_utils import commit_and_push_changes, delete_set_and_push
 from flask import send_file
 from pathlib import Path
+from flask import render_template
+from .utils import load_sets_with_counts
 
 def init_routes(app):
 
     @app.route("/")
-    def home():
+    def landing_page():
+        return render_template("index.html")
+
+    @app.route("/flashcards")
+    def flashcards_home():
         sets = load_sets_with_counts()
-        return render_template("index.html", sets=sets)
-   # @app.route("/")
-    #def homepage():
-        #sets = load_sets_with_counts()
-        #return render_template("homepage.html", sets=sets)
+        return render_template("flashcards_home.html", sets=sets)
+
+    @app.route("/practice")
+    def practice_home():
+        sets = load_sets_with_counts()
+        return render_template("practice_home.html", sets=sets)
+
+    @app.route("/reading")
+    def reading_home():
+        sets = load_sets_with_counts()
+        return render_template("reading_home.html", sets=sets)
+
+    @app.route("/listening")
+    def listening_home():
+        sets = load_sets_with_counts()
+        return render_template("listening_home.html", sets=sets)
+
+    @app.route("/test")
+    def test_home():
+        sets = load_sets_with_counts()
+        return render_template("test_home.html", sets=sets)
 
     @app.route("/create", methods=["GET", "POST"])
     def create():
         if request.method == "POST":
             return handle_flashcard_creation(request.form)
-        return render_template("index.html")
+        return render_template("create.html")
 
     @app.route("/api/token", methods=["GET"])
     def get_token():
@@ -49,15 +71,12 @@ def init_routes(app):
             return "Homepage not found", 404
         return send_file(docs_index)
     
-    #@app.route("/audio/<filename>")
-    #def serve_audio(filename):
-        #return send_from_directory("audio", filename)
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
         print("Raw filename from browser:", filename)
 
-        # Resolve based on the project root, not the current file's folder
+
         project_root = Path(__file__).resolve().parent.parent
         full_path = project_root / "docs" / "output" / Path(filename)
 
@@ -74,21 +93,6 @@ def init_routes(app):
         if not practice_path.exists():
             return "Practice page not found", 404
         return send_file(practice_path)
-
-    #@app.route("/delete/<set_name>", methods=["POST"])
-    #def delete(set_name):
-        #delete_set(set_name)
-        #return redirect("/")
-
-    #@app.route("/output/<path:filename>")
-    #def serve_output_file(filename):
-        #return send_from_directory("output", filename)
-
-    #@app.route("/delete_set/<set_name>", methods=["POST"])
-    #def delete(set_name):
-        #delete_set_and_push(set_name)
-        #update_docs_homepage()  # ✅ add this line
-        #return redirect(url_for('homepage'))
 
     @app.route("/delete_sets", methods=["POST"])
     def delete_sets():

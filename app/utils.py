@@ -112,17 +112,17 @@ def generate_mode_landing_page(set_name):
 <body>
     <h1>{set_name} – Choose Your Learning Mode</h1>
     <div class="mode-buttons">
-        <a class="mode-button" href="flashcards.html">🧠 Flashcards</a>
+        <a class="mode-button" href="flashcards.html">📚 Flashcards</a>
         <a class="mode-button" href="practice.html">🎤 Practice</a>
         <a class="mode-button" href="reading.html">📖 Reading</a>
         <a class="mode-button" href="listening.html">🎧 Listening</a>
-        <a class="mode-button" href="test.html">🧪 Test Yourself</a>
+        <a class="mode-button" href="test.html">🎓 Test Yourself</a>
     </div>
-    <a class="home-link" href="../../index.html">← Back to All Sets</a>
+    <a class="home-link" href="../../landing.html">← Back to All Sets</a>
 </body>
 </html>
 """
-    output_path = Path("docs/output") / set_name / "index.html"
+    output_path = Path("docs/output") / set_name / "landing.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
@@ -300,7 +300,7 @@ def generate_test_homepage(set_name):
     </style>
 </head>
 <body>
-    <h1>🧪 Test Yourself – {set_name}</h1>
+    <h1>🎓 Test Yourself – {set_name}</h1>
     <div class="info">Try quizzes and challenges across flashcards, pronunciation, reading, and listening modes.</div>
     <a class="action" href="../flashcards.html">🚀 Start Test</a>
     <a class="back" href="../index.html">← Back to Mode Selection</a>
@@ -349,7 +349,7 @@ def handle_flashcard_creation(form):
     update_docs_homepage()
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
-    return redirect(f"/output/{set_name}/index.html")
+    return redirect(f"/{mode}_home")
 
 def generate_flashcard_html(set_name, data):
     import os, json
@@ -737,7 +737,7 @@ async function assessPronunciation(referenceText) {{
           const data = JSON.parse(e.result.json);
           const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
           let feedback = score >= 85
-            ? `🌟 Excellent! ${{score.toFixed(1)}}%`
+            ? `💯 Excellent! ${{score.toFixed(1)}}%`
             : score >= 70
             ? `✅ Good! ${{score.toFixed(1)}}%`
             : `⚠️ Needs work: ${{score.toFixed(1)}}%`;
