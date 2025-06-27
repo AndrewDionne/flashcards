@@ -561,7 +561,13 @@ def generate_flashcard_html(set_name, data):
       document.getElementById("prevBtn").disabled = currentIndex === 0;
       document.getElementById("nextBtn").disabled = currentIndex === cards.length - 1;
     }}
-
+    document.addEventListener("DOMContentLoaded", () => {{
+        if (!window.SpeechSDK) {{
+            console.error("❌ Azure Speech SDK failed to load.");
+        }} else {{
+            console.log("✅ Azure Speech SDK loaded successfully.");
+        }}
+    }});
     function playAudio(filename) {{
       const audio = document.getElementById("audioPlayer");
       const source = document.getElementById("audioSource");
@@ -675,7 +681,13 @@ function speak(text, lang, callback) {{
   utterance.onend = callback;
   speechSynthesis.speak(utterance);
 }}
-
+document.addEventListener("DOMContentLoaded", () => {{
+    if (!window.SpeechSDK) {{
+        console.error("❌ Azure Speech SDK failed to load.");
+    }} else {{
+        console.log("✅ Azure Speech SDK loaded successfully.");
+    }}
+}});
 function playAudio(filename, callback) {{
   const repo = window.location.hostname === "andrewdionne.github.io"
     ? window.location.pathname.split("/")[1]
