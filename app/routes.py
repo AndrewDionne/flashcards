@@ -8,9 +8,13 @@ from pathlib import Path
 def init_routes(app):
 
     @app.route("/")
-    def homepage():
+    def home():
         sets = load_sets_with_counts()
-        return render_template("homepage.html", sets=sets)
+        return render_template("index.html", sets=sets)
+   # @app.route("/")
+    #def homepage():
+        #sets = load_sets_with_counts()
+        #return render_template("homepage.html", sets=sets)
 
     @app.route("/create", methods=["GET", "POST"])
     def create():
