@@ -349,7 +349,7 @@ def handle_flashcard_creation(form):
     update_docs_homepage()
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
-    return redirect(f"/{mode}_home")
+    return redirect(f"/output/{set_name}/landing.html")
 
 def generate_flashcard_html(set_name, data):
     import os, json
