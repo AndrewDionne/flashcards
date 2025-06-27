@@ -4,6 +4,7 @@ from gtts import gTTS
 import requests
 from pathlib import Path
 from .git_utils import commit_and_push_changes
+from flask_cors import CORS
 
 def sanitize_filename(text):
     return re.sub(r'[^a-zA-Z0-9]', '_', text)
