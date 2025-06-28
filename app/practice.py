@@ -75,6 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {{
     }}
 }});
 function playAudio(filename, callback) {{
+  const audio = document.getElementById("audioPlayer");
+  const source = document.getElementById("audioSource");
   const repo = window.location.hostname === "andrewdionne.github.io"
     ? window.location.pathname.split("/")[1]
     : "";
