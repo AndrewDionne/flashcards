@@ -57,7 +57,7 @@ let index = 0;
 let attempts = 0;
 let cachedSpeechConfig = null;
 
-function sanitize(text) {{
+function sanitizeFilename(text) {{
   return text.replace(/[^a-zA-Z0-9]/g, "_");
 }}
 
