@@ -4,10 +4,15 @@ from pathlib import Path
 
 def generate_test_html(set_name, data):
     """Generate the test.html page for a flashcard set."""
-    output_dir = Path("docs/output") / set_name
-    output_dir.mkdir(parents=True, exist_ok=True)
 
-    test_path = output_dir / "test.html"
+    # Ensure output directory
+    output_dir = os.path.join("docs", "output", set_name)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Define file paths
+    test_path = os.path.join(output_dir, "test.html")
+   
+    # Prepare data
     cards_json = json.dumps(data, ensure_ascii=False)
 
     test_html = f"""<!DOCTYPE html>

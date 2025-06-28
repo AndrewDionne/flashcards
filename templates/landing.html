@@ -1,147 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Flashcard Set Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 40px auto;
-            max-width: 700px;
-            padding: 0 20px;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 8px;
-        }
-        input[type="text"], textarea {
-            width: 100%;
-            font-size: 1em;
-            padding: 10px;
-            box-sizing: border-box;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            resize: vertical;
-        }
-        textarea {
-            min-height: 200px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 12px 20px;
-            font-size: 1em;
-            border: none;
-            border-radius: 8px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .note {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Choose Your Learning Mode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f0f2f5;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .mode-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .mode-button {
+      padding: 1rem 1.5rem;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      transition: background 0.3s;
+    }
+    .mode-button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <h1>Generate Flashcards</h1>
-    <form method="POST" action="/create">
-        <label for="set_name">Flashcard Set Name (no spaces or special characters):</label>
-        <input type="text" id="set_name" name="set_name" required placeholder="e.g. PolishBasics" pattern="[A-Za-z0-9_-]+" title="Alphanumeric characters, dash and underscore only">
-
-        <label for="json_input">Paste Flashcards JSON Array:</label>
-        <textarea id="json_input" name="json_input" required placeholder='
-[
-  {"phrase": "Cześć", "pronunciation": "cheshch", "meaning": "Hello"},
-  {"phrase": "Dziękuję", "pronunciation": "jen-koo-yeh", "meaning": "Thank you"}
-]
-        '></textarea>
-
-        <button type="submit">Generate Flashcards</button>
-    </form>
-
-    <p class="note">
-        Your JSON input must be an array of objects with keys: <code>phrase</code>, <code>pronunciation</code>, and <code>meaning</code>.
-    </p>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Learn Polish - Choose a Set</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 40px auto;
-            max-width: 800px;
-            padding: 0 20px;
-            background-color: #f8f9fa;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .set-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-        .set-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            width: 200px;
-            text-align: center;
-            text-decoration: none;
-            color: #333;
-        }
-        .set-card:hover {
-            background-color: #f0f0f0;
-        }
-        .create-link {
-            display: block;
-            margin-top: 30px;
-            text-align: center;
-        }
-        .create-link a {
-            text-decoration: none;
-            font-size: 1rem;
-            color: #007bff;
-        }
-        .create-link a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <h1>📚 Choose a Flashcard Set</h1>
-    <div class="set-list">
-        {% for set in sets %}
-        <a class="set-card" href="output/{{ set.name }}/index.html">
-            <strong>{{ set.name }}</strong><br>
-            {{ set.count }} cards
-        </a>
-        {% endfor %}
-    </div>
-
-    <div class="create-link">
-        <a href="/create">➕ Create a New Set</a>
-    </div>
+  <h1>Choose Your Learning Mode</h1>
+  <div class="mode-buttons">
+    <a class="mode-button" href="/flashcards_home">📚 Flashcards</a>
+    <a class="mode-button" href="/practice_home">🎤 Practice</a>
+    <a class="mode-button" href="/reading_home">📖 Reading</a>
+    <a class="mode-button" href="/listening_home">🎧 Listening</a>
+    <a class="mode-button" href="/test_home">🎓 Test Yourself</a>
+  </div>
 </body>
 </html>
