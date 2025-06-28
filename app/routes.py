@@ -87,12 +87,6 @@ def init_routes(app):
             return "File not found", 404
 
         return send_file(full_path)
-    @app.route("/practice/<set_name>")
-    def serve_practice_page(set_name):
-        practice_path = Path(__file__).resolve().parent.parent / "docs" / "output" / set_name / "practice.html"
-        if not practice_path.exists():
-            return "Practice page not found", 404
-        return send_file(practice_path)
 
     @app.route("/delete_sets", methods=["POST"])
     def delete_sets():
