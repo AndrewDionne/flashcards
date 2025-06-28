@@ -45,9 +45,19 @@ def generate_practice_html(set_name, data):
     </style>
 </head>
 <body>
-    <h1>{set_name} Practice Mode <button class="home-btn" onclick="goHome()">🏠</button></h1>
+    <h1>{{ set_name }} – Practice Mode</h1>
+  <button id="startBtn" class="flash">▶️ Start Practice</button>
+  <div id="result" class="result"></div>
 
-    <div id="result" class="result">🎙 Get ready to practice...</div>
+<script>
+let hasStarted = false;
+
+document.getElementById("startBtn").addEventListener("click", () => {{
+  if (hasStarted) return;
+  hasStarted = true;
+  document.getElementById("startBtn").style.display = "none";
+  runPractice();
+}});
 
     <audio id="preloadTest" preload="auto">
       <source id="preloadSource" src="" type="audio/mpeg">
@@ -87,15 +97,29 @@ def generate_practice_html(set_name, data):
 }}
 
 function speak(text, lang, callback) {{
-  try {{
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.onend = callback;
-    speechSynthesis.speak(utterance);
-  }} catch (err) {{
-    console.warn("❌ Speech synthesis failed:", err);
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.onend = callback;
+  utterance.onerror = (e) => {{
+    console.warn("🔇 Speech synthesis error:", e.error);
     callback();
+  }};
+
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) {{
+    speechSynthesis.onvoiceschanged = () => {{
+      speechSynthesis.speak(utterance);
+    }};
+  }} else {{
+    speechSynthesis.speak(utterance);
   }}
+
+  setTimeout(() => {{
+    if (!speechSynthesis.speaking) {{
+      console.warn("⏱ Speech fallback timeout triggered");
+      callback();
+    }}
+  }}, 5000);
 }}
 
 async function assessPronunciation(phrase) {{
