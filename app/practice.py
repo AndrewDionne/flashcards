@@ -255,4 +255,5 @@ document.addEventListener("DOMContentLoaded", () => {{
         f.write(practice_html)
 
     print(f"✅ practice.html generated for: {set_name}")
+    print(f"✅ Practice HTML updated at {practice_path}")
    
