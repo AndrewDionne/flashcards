@@ -1,29 +1,11 @@
-import os
-import json
-from pathlib import Path
-
-def generate_flashcard_html(set_name, data):
-    import os, json
-
-    # Ensure output directory
-    output_dir = os.path.join("docs", "output", set_name)
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Define file paths
-    flashcard_path = os.path.join(output_dir, "flashcards.html")
-   
-    # Prepare data
-    cards_json = json.dumps(data, ensure_ascii=False)
-
-    # Flashcard HTML
-    flashcard_html = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>{set_name} Flashcards</title>
+  <title>28-2 Flashcards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {{
+        body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0; padding: 20px;
             background-color: #f8f9fa;
@@ -32,16 +14,16 @@ def generate_flashcard_html(set_name, data):
             min-height: 100vh;
             box-sizing: border-box;
             overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
-        }}
-        h1 {{
+        }
+        h1 {
             font-size: 1.5em;
             margin-bottom: 20px;
             position: relative;
             width: 100%;
             text-align: center;
-        }}
+        }
         
-        .home-btn {{
+        .home-btn {
             position: absolute;
             right: 0px;
             top: 0;
@@ -49,9 +31,9 @@ def generate_flashcard_html(set_name, data):
             background: none;
             border: none;
             cursor: pointer;
-            }}
+            }
 
-        .card {{
+        .card {
             width: 90%;
             max-width: 350px;
             height: 220px;
@@ -61,9 +43,9 @@ def generate_flashcard_html(set_name, data):
             margin-left: auto;
             margin-right: auto;
             box-sizing: border-box;
-        }}
+        }
 
-        .card-inner {{
+        .card-inner {
             width: 100%; 
             height: 100%;
             position: relative;
@@ -77,19 +59,19 @@ def generate_flashcard_html(set_name, data):
             align-items: center;
             border-radius: 12px;
 
-        }}
-        .card.flipped .card-inner {{
+        }
+        .card.flipped .card-inner {
             transform: rotateY(180deg);
-        }}
-        .card-front, .card-back {{
+        }
+        .card-front, .card-back {
             position: absolute;
             width: 100%; height: 100%;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             backface-visibility: hidden;
-        }}
-        .card-front {{
+        }
+        .card-front {
             background: #ffffff;
             font-size: 1.1em;
             font-weight: normal;
@@ -99,8 +81,8 @@ def generate_flashcard_html(set_name, data):
             display: flex;
             justify-content: center;
             align-items: center;
-        }}
-        .card-back {{
+        }
+        .card-back {
             min-height: 100%;
             background: #e9ecef;
             transform: rotateY(180deg);
@@ -113,8 +95,8 @@ def generate_flashcard_html(set_name, data):
             flex-direction: column
             justify-content: center;
             align-items: center;
-        }}
-        .card-back button {{
+        }
+        .card-back button {
             margin-top: auto; /* Pushes it to the bottom of the column */
             margin-bottom: 20px; /* Optional spacing from bottom */
             padding: 8px 16px;
@@ -124,17 +106,17 @@ def generate_flashcard_html(set_name, data):
             border-radius: 8px;
             color: white;
             cursor: pointer;
-        }}
-        .nav-buttons {{
+        }
+        .nav-buttons {
             display: flex;
             flex-direction: row;
             justify-content: center;
             align-items: center;
             gap: 15px;
             margin-top: 20px;
-        }}
+        }
 
-        .nav-button {{
+        .nav-button {
         padding: 6px 12px;
             font-size: 1em;
             background-color: #007bff;
@@ -144,8 +126,8 @@ def generate_flashcard_html(set_name, data):
             width: 100px;
             height: 30px;
             cursor: pointer;
-        }}
-        .play-audio-button {{
+        }
+        .play-audio-button {
             margin-bottom: 10px;
             padding: 4px 10px;
             font-size: 0.9em;
@@ -156,22 +138,22 @@ def generate_flashcard_html(set_name, data):
             cursor: pointer;
             width: auto; /* or a fixed smaller width */
             height: auto;
-        }}
+        }
 
-        button {{
+        button {
             border: none;
             cursor: pointer;
         
-        }}
-        .nav-button:disabled {{
+        }
+        .nav-button:disabled {
             background-color: #aaa;
             cursor: default;
-        }}
+        }
     </style>
 </head>
 <body>
-  <h1>{set_name} Flashcards <button class="home-btn" onclick="goHome()">🏠</button></h1>
-  //<button class="practice-btn" onclick="window.location.href='practice.html'">🎓 Practice Mode</button>
+  <h1>28-2 Flashcards <button class="home-btn" onclick="goHome()">🏠</button></h1>
+  <button class="practice-btn" onclick="window.location.href='practice.html'">🎓 Practice Mode</button>
 
   <div class="card" id="cardContainer">
     <div class="card-inner" id="cardInner">
@@ -189,54 +171,54 @@ def generate_flashcard_html(set_name, data):
 
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <script>
-    const cards = {cards_json};
-    const setName = "{set_name}";
+    const cards = [{"phrase": "Dziękuję", "pronunciation": "jen-KOO-yeh", "meaning": "Thank you"}, {"phrase": "Przepraszam", "pronunciation": "psheh-PRAH-shahm", "meaning": "Sorry/Excuse me"}, {"phrase": "Proszę powtórzyć!", "pronunciation": "PROH-sheh pohv-TOO-zheetch", "meaning": "Please repeat!"}, {"phrase": "Co to znaczy", "pronunciation": "tso toh ZNAH-chee", "meaning": "What does it mean?"}, {"phrase": "Tak", "pronunciation": "tahk", "meaning": "Yes"}, {"phrase": "Nie", "pronunciation": "nyeh", "meaning": "No"}, {"phrase": "Nie wiem", "pronunciation": "nyeh VYEM", "meaning": "I don't know"}, {"phrase": "Proszę napisać!", "pronunciation": "PROH-sheh nah-PEE-sahtch", "meaning": "Please write it down!"}, {"phrase": "Gdzie jest toaleta", "pronunciation": "g-jeh yest toh-ah-LEH-tah", "meaning": "Where is the toilet?"}, {"phrase": "Proszę mówić wolniej", "pronunciation": "PROH-sheh MOO-veech VOL-nyeh", "meaning": "Please speak more slowly"}, {"phrase": "Mam pytanie", "pronunciation": "mahm pih-TAH-nyeh", "meaning": "I have a question"}, {"phrase": "Nie rozumiem", "pronunciation": "nyeh roh-ZOO-myem", "meaning": "I don't understand"}];
+    const setName = "28-2";
     let currentIndex = 0;
 
-    function sanitizeFilename(text) {{
+    function sanitizeFilename(text) {
       return text.replace(/[^a-zA-Z0-9]/g, "_");
-    }}
+    }
 
-    function updateCard() {{
+    function updateCard() {
       const entry = cards[currentIndex];
-      const filename = `${{currentIndex}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
+      const filename = `${currentIndex}_${sanitizeFilename(entry.phrase)}.mp3`;
       document.getElementById("cardFront").textContent = entry.meaning;
       document.getElementById("cardBack").innerHTML = `
-        <p>${{entry.phrase}}</p>
-        <p><em>${{entry.pronunciation}}</em></p>
-        <button onclick="playAudio('${{filename}}')">▶️ Play</button>
-        <button onclick="assessPronunciation('${{entry.phrase}}')">🎤 Test</button>
+        <p>${entry.phrase}</p>
+        <p><em>${entry.pronunciation}</em></p>
+        <button onclick="playAudio('${filename}')">▶️ Play</button>
+        <button onclick="assessPronunciation('${entry.phrase}')">🎤 Test</button>
         <div id="pronunciationResult" style="margin-top:10px; font-size:0.9em;"></div>
       `;
       document.getElementById("prevBtn").disabled = currentIndex === 0;
       document.getElementById("nextBtn").disabled = currentIndex === cards.length - 1;
-    }}
-    document.addEventListener("DOMContentLoaded", () => {{
-        if (!window.SpeechSDK) {{
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        if (!window.SpeechSDK) {
             console.error("❌ Azure Speech SDK failed to load.");
-        }} else {{
+        } else {
             console.log("✅ Azure Speech SDK loaded successfully.");
-        }}
-    }});
-    function playAudio(filename) {{
+        }
+    });
+    function playAudio(filename) {
       const audio = document.getElementById("audioPlayer");
       const source = document.getElementById("audioSource");
       const repo = window.location.hostname === "andrewdionne.github.io"
         ? window.location.pathname.split("/")[1]
         : "";
       source.src = window.location.hostname === "andrewdionne.github.io"
-        ? `/${{repo}}/static/${{setName}}/audio/${{filename}}`
-        : `/custom_static/${{setName}}/audio/${{filename}}`;
+        ? `/${repo}/static/${setName}/audio/${filename}`
+        : `/custom_static/${setName}/audio/${filename}`;
       audio.load(); audio.play();
-    }}
+    }
 
-    function assessPronunciation(referenceText) {{
+    function assessPronunciation(referenceText) {
       const resultDiv = document.getElementById("pronunciationResult");
-      if (!window.SpeechSDK) {{
+      if (!window.SpeechSDK) {
         resultDiv.innerHTML = "❌ Azure SDK not loaded."; return;
-      }}
+      }
 
-      fetch("https://flashcards-5c95.onrender.com/api/token").then(r => r.json()).then(data => {{
+      fetch("https://flashcards-5c95.onrender.com/api/token").then(r => r.json()).then(data => {
         const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
         speechConfig.speechRecognitionLanguage = "pl-PL";
         speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "3000");
@@ -245,42 +227,36 @@ def generate_flashcard_html(set_name, data):
         const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
         const config = new SpeechSDK.PronunciationAssessmentConfig(referenceText, SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark, SpeechSDK.PronunciationAssessmentGranularity.FullText, false);
         config.applyTo(recognizer);
-        recognizer.recognized = (s, e) => {{
-          try {{
+        recognizer.recognized = (s, e) => {
+          try {
             const res = JSON.parse(e.result.json);
             const score = res.NBest[0].PronunciationAssessment.AccuracyScore.toFixed(1);
-            resultDiv.innerHTML = score >= 85 ? `🌟 ${{score}}%` : score >= 70 ? `✅ ${{score}}%` : `⚠️ ${{score}}%`;
-          }} catch (err) {{
+            resultDiv.innerHTML = score >= 85 ? `🌟 ${score}%` : score >= 70 ? `✅ ${score}%` : `⚠️ ${score}%`;
+          } catch (err) {
             resultDiv.innerHTML = "⚠️ Could not assess.";
-          }}
+          }
           recognizer.stopContinuousRecognitionAsync();
-        }};
+        };
         recognizer.startContinuousRecognitionAsync();
-      }});
-    }}
+      });
+    }
 
-    document.getElementById("cardContainer").addEventListener("click", (e) => {{
-      if (!e.target.closest("button")) {{
+    document.getElementById("cardContainer").addEventListener("click", (e) => {
+      if (!e.target.closest("button")) {
         document.getElementById("cardContainer").classList.toggle("flipped");
-      }}
-    }});
+      }
+    });
 
-    document.getElementById("prevBtn").onclick = () => {{ if (currentIndex > 0) {{ currentIndex--; updateCard(); }} }};
-    document.getElementById("nextBtn").onclick = () => {{ if (currentIndex < cards.length - 1) {{ currentIndex++; updateCard(); }} }};
+    document.getElementById("prevBtn").onclick = () => { if (currentIndex > 0) { currentIndex--; updateCard(); } };
+    document.getElementById("nextBtn").onclick = () => { if (currentIndex < cards.length - 1) { currentIndex++; updateCard(); } };
 
-    function goHome() {{
+    function goHome() {
       const pathParts = window.location.pathname.split("/");
       const repo = pathParts[1];
-      window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
-    }}
+      window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${repo}/` : "/";
+    }
 
     updateCard();
   </script>
 </body>
 </html>
-"""
-    with open(flashcard_path, "w", encoding="utf-8") as f:
-        f.write(flashcard_html)
-
-    print(f"✅ flashcards.html generated for: {set_name}")
-   
