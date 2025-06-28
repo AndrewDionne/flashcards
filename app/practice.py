@@ -19,35 +19,67 @@ def generate_practice_html(set_name, data):
     practice_html = """<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>{set_name} Practice</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>{set_name} Practice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {{
-            font-family: sans-serif;
-            background-color: #f0f0f0;
-            padding: 20px;
-            text-align: center;
+
+      body {{
+          font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+          background-color: #f9f9f9;
+          padding: 2rem;
+          text-align: center;
         }}
-        .flash {{
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+
+        h1 {{
+          font-size: 1.6rem;
+          margin-bottom: 1rem;
         }}
+
         .result {{
-            font-size: 1.2em;
-            margin-top: 20px;
+          font-size: 1.2rem;
+          color: #333;
+          margin-top: 2rem;
+          min-height: 2em;
+        }}
+
+        .flash {{
+          margin: 10px;
+          padding: 12px 20px;
+          font-size: 1rem;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          display: inline-block;
+        }}
+
+        .flash:hover {{
+          background-color: #0056b3;
+        }}
+
+        .back {{
+          display: block;
+          margin-top: 2rem;
+          font-size: 0.9rem;
+          color: #555;
+          text-decoration: none;
+        }}
+
+        .back:hover {{
+          text-decoration: underline;
         }}
     </style>
 </head>
 <body>
-    <h1>{{ set_name }} – Practice Mode</h1>
+<h1>{{ set_name }} – Practice Mode</h1>
+  
   <button id="startBtn" class="flash">▶️ Start Practice</button>
-  <div id="result" class="result"></div>
+  
+  <div id="result" class="result">🎙 Get ready to practice...</div>
+
+  <a class="back" href="../index.html">← Back to Mode Selection</a>
 
 <script>
 let hasStarted = false;
