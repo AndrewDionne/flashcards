@@ -160,7 +160,12 @@ def handle_flashcard_creation(form):
     with open(os.path.join(sets_dir, "data.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
+    print("🛠 Generating practice.html...")
+    try:
+      generate_practice_html(set_name, data)
+    except Exception as e:
+      print(f"❌ Failed to generate practice.html: {e}")
+      
     generate_flashcard_html(set_name, data)
     generate_practice_html(set_name, data)
     generate_test_html(set_name, data)
