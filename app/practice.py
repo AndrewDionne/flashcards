@@ -219,9 +219,9 @@ async function runPractice() {{
     return;
   }}
   const entry = cards[index];
-  const filename = `${{index}}_${{sanitize(entry.phrase)}}.mp3`;
+const filename = `${{{{index}}}}_{{{{sanitize(entry.phrase)}}}}.mp3`;
 
-  resultDiv.innerHTML = `🔊 ${entry.meaning}`;
+resultDiv.innerHTML = `🔊 ${{{{entry.meaning}}}}`;
   speak(entry.meaning, "en-US", () => {{
     playAudio(filename, async () => {{
       const score = await assessPronunciation(entry.phrase);

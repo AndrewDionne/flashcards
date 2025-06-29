@@ -169,9 +169,9 @@ def handle_flashcard_creation(form):
     generate_flashcard_html(set_name, data)
     generate_practice_html(set_name, data)
     generate_test_html(set_name, data)
+    generate_reading_html(set_name, data)
+    generate_listening_html(set_name, data)
     generate_mode_landing_page(set_name)
-    generate_reading_homepage(set_name, data)
-    generate_listening_homepage(set_name, data)
     update_docs_homepage()
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
