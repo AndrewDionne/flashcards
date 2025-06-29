@@ -98,10 +98,7 @@ document.getElementById("startBtn").addEventListener("click", () => {{
   document.getElementById("startBtn").style.display = "none";
   runPractice();
 }});
-
-    <audio id="preloadTest" preload="auto">
-      <source id="preloadSource" src="" type="audio/mpeg">
-    </audio>
+<script>
 
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <script>
