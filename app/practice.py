@@ -89,24 +89,15 @@ def generate_practice_html(set_name, data):
   
   <div id="result" class="result">🎙 Get ready to practice...</div>
 
-<script>
-let hasStarted = false;
-
-document.getElementById("startBtn").addEventListener("click", () => {{
-  if (hasStarted) return;
-  hasStarted = true;
-  document.getElementById("startBtn").style.display = "none";
-  runPractice();
-}});
-<script>
-
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
   <script>
-  const cards = {cards_json};
-  const setName = "{set_name}";
+  let hasStarted = false;
   let index = 0;
   let attempts = 0;
   let cachedSpeechConfig = null;
+
+  const cards = {cards_json};
+  const setName = "{set_name}";
 
   function sanitizeFilename(text) {{
         return text.replace(/[^a-zA-Z0-9]/g, "_");
@@ -224,9 +215,9 @@ async function runPractice() {{
     return;
   }}
   const entry = cards[index];
-const filename = `${{{{index}}}}_{{{{sanitize(entry.phrase)}}}}.mp3`;
+  const filename = `${{{{index}}}}_{{{{sanitize(entry.phrase)}}}}.mp3`;
 
-resultDiv.innerHTML = `🔊 ${{{{entry.meaning}}}}`;
+  resultDiv.innerHTML = `🔊 ${{{{entry.meaning}}}}`;
   speak(entry.meaning, "en-US", () => {{
     playAudio(filename, async () => {{
       const score = await assessPronunciation(entry.phrase);
@@ -241,16 +232,14 @@ resultDiv.innerHTML = `🔊 ${{{{entry.meaning}}}}`;
     }});
   }});
 }}
-function goHome() {{
-      const pathParts = window.location.pathname.split("/");
-      const repo = pathParts[1];
-      window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
-    }}
+
 document.addEventListener("DOMContentLoaded", () => {{
-  if (!window.SpeechSDK) {{
-    console.warn("Azure Speech SDK not available.");
-  }} else {{
-    console.log("✅ Azure Speech SDK loaded.");
+  console.log("✅ DOM loaded. Awaiting user interaction.");
+  document.getElementById("startBtn").addEventListener("click", () => {{
+    if (hasStarted) return;
+    hasStarted = true;
+    document.getElementById("startBtn").style.display = "none";
+    runPractice();
   }}
 }});
 </script>
