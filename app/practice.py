@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     document.getElementById("startBtn").style.display = "none";
     runPractice();
   }});
-}});
+}}
 </script>
 
 </body>
