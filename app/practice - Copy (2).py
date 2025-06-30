@@ -130,22 +130,24 @@ function playAudio(filename, callback) {{
 function speak(text, lang, callback) {{
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
-
-  // Try to match preferred voice
-  const voices = speechSynthesis.getVoices();
-  const match = voices.find(v => v.lang === lang || v.lang.startsWith(lang));
-  if (match) utterance.voice = match;
-
   utterance.onend = callback;
   utterance.onerror = (e) => {{
     console.warn("🔇 Speech synthesis error:", e.error);
     callback();
   }};
 
-  speechSynthesis.speak(utterance);
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) {{
+    speechSynthesis.onvoiceschanged = () => {{
+      speechSynthesis.speak(utterance);
+    }};
+  }} else {{
+    speechSynthesis.speak(utterance);
+  }}
 
   setTimeout(() => {{
     if (!speechSynthesis.speaking) {{
+      console.warn("⏱ Speech fallback timeout triggered");
       callback();
     }}
   }}, 5000);
@@ -210,8 +212,7 @@ async function getSpeechConfig() {{
 }}
 
 async function runPractice() {{
-  if (paused || nextRunPending) return;
-  nextRunPending = true;
+  if (paused) return;
 
   const resultDiv = document.getElementById("result");
 
@@ -262,23 +263,16 @@ document.addEventListener("DOMContentLoaded", () => {{
       paused = false;
       startBtn.style.display = "none";
       pauseBtn.style.display = "inline-block";
-      speak("Repeat after me", "en-US", () => {{
-        runPractice();
-      }});
+      runPractice();
     }}
   }});
 
   pauseBtn.addEventListener("click", () => {{
     if (!hasStarted) return;
-    if (paused) {{
-      paused = false;
-      pauseBtn.textContent = "⏸ Pause";
-      speak("Repeat after me", "en-US", () => {{
-        runPractice();
-      }});
-    }} else {{
-      paused = true;
-      pauseBtn.textContent = "▶️ Resume";
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶️ Resume" : "⏸ Pause";
+    if (!paused) {{
+      runPractice();
     }}
   }});
 }});
