@@ -95,13 +95,15 @@ def generate_practice_html(set_name, data):
 <script>
 let hasStarted = false;
 let paused = false;
+//let resumeRequested = false;
 let index = 0;
 let attempts = 0;
 let isRunning = false;
 let cachedSpeechConfig = null;
+//let nextRunPending = false;
 
-const cards = {{cards_json}};
-const setName = "{{set_name}}";
+const cards = {cards_json};
+const setName = "{set_name}";
 
 function sanitizeFilename(text) {{
   return text.replace(/[^a-zA-Z0-9]/g, "_");
@@ -151,7 +153,7 @@ function speak(text, lang, callback) {{
 
   setTimeout(() => {{
     if (!speechSynthesis.speaking) {{
-      console.warn("⏱ Fallback: speech synthesis timeout");
+      console.warn("⏱ Speech fallback timeout");
       callback();
     }}
   }}, 5000);
@@ -167,7 +169,6 @@ async function assessPronunciation(phrase) {{
     const speechConfig = await getSpeechConfig();
     const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
     const config = new SpeechSDK.PronunciationAssessmentConfig(
       phrase,
       SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
@@ -176,7 +177,6 @@ async function assessPronunciation(phrase) {{
     );
     config.applyTo(recognizer);
     resultDiv.innerHTML = `🎙 Speak: <strong>${{phrase}}</strong>`;
-
     return new Promise(resolve => {{
       recognizer.recognized = (s, e) => {{
         try {{
@@ -200,7 +200,7 @@ async function assessPronunciation(phrase) {{
     }});
   }} catch (err) {{
     console.error("Azure error:", err);
-    document.getElementById("result").textContent = "❌ Azure config error.";
+    resultDiv.textContent = "❌ Azure config error.";
     return 0;
   }}
 }}
@@ -217,19 +217,34 @@ async function getSpeechConfig() {{
   return speechConfig;
 }}
 
+//let isRunning = false;
+
 async function runPractice() {{
-  if (paused || isRunning || index >= cards.length) return;
+  if (paused) {{
+    isRunning = false;
+    return;
+}}
   isRunning = true;
 
   const resultDiv = document.getElementById("result");
+
+  if (index >= cards.length) {{
+    resultDiv.innerHTML = "✅ Practice complete!";
+    isRunning = false;
+    return;
+  }}
+
   const entry = cards[index];
   const filename = `${{index}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
 
   await new Promise(resolve => playAudio(filename, resolve));
-  if (paused) {{ isRunning = false; return; }}
+  if (paused) {{
+    isRunning = false;
+    return;
+}}
 
   const score = await assessPronunciation(entry.phrase);
-  if (paused) {{ isRunning = false; return; }}
+  if (paused) return isRunning = false;
 
   if (score >= 70 || attempts >= 2) {{
     index++;
@@ -239,7 +254,10 @@ async function runPractice() {{
     resultDiv.innerHTML += "<br>🔁 Try again!";
   }}
 
-  isRunning = false;
+  if (paused) {{
+    isRunning = false;
+    return;
+}}
 
   setTimeout(() => {{
     if (!paused) runPractice();
@@ -259,26 +277,26 @@ document.addEventListener("DOMContentLoaded", () => {{
   const pauseBtn = document.getElementById("pauseBtn");
   const restartBtn = document.getElementById("restartBtn");
 
-  startBtn.addEventListener("click", () => {{
-    if (!hasStarted) {{
-      hasStarted = true;
-      startBtn.style.display = "none";
-      pauseBtn.style.display = "inline-block";
-      restartBtn.style.display = "inline-block";
-      startPracticeFlow();
-    }}
-  }});
+ startBtn.addEventListener("click", () => {{
+  if (!hasStarted) {{
+    hasStarted = true;
+    startBtn.style.display = "none";
+    pauseBtn.style.display = "inline-block";
+    restartBtn.style.display = "inline-block";
+    startPracticeFlow();
+  }}
+}});
 
   pauseBtn.addEventListener("click", () => {{
-    if (!hasStarted) return;
-    paused = !paused;
+  if (!hasStarted) return;
+  paused = !paused;
     pauseBtn.textContent = paused ? "▶️ Resume" : "⏸ Pause";
     if (!paused) {{
       startPracticeFlow();
     }}
   }});
 
-  restartBtn.addEventListener("click", () => {{
+  rrestartBtn.addEventListener("click", () => {{
     index = 0;
     attempts = 0;
     paused = false;
@@ -289,14 +307,12 @@ document.addEventListener("DOMContentLoaded", () => {{
 }});
 
 function goHome() {{
-  const pathParts = window.location.pathname.split("/");
-  const repo = pathParts[1];
-  window.location.href = window.location.hostname === "andrewdionne.github.io"
-    ? `/${{repo}}/`
-    : "/";
+    const pathParts = window.location.pathname.split("/");
+    const repo = pathParts[1];
+    window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
 }}
-</script>
 
+</script>
 
 </body>
 </html>
