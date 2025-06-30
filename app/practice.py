@@ -90,7 +90,7 @@ def generate_practice_html(set_name, data):
 
   <div id="result" class="result">🎙 Get ready to practice...</div>
 
-  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script>
 let hasStarted = false;
 let paused = false;
@@ -98,6 +98,7 @@ let resumeRequested = false;
 let index = 0;
 let attempts = 0;
 let cachedSpeechConfig = null;
+let nextRunPending = false;
 
 const cards = {cards_json};
 const setName = "{set_name}";
@@ -130,22 +131,24 @@ function playAudio(filename, callback) {{
 function speak(text, lang, callback) {{
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
-
-  // Try to match preferred voice
-  const voices = speechSynthesis.getVoices();
-  const match = voices.find(v => v.lang === lang || v.lang.startsWith(lang));
-  if (match) utterance.voice = match;
-
   utterance.onend = callback;
   utterance.onerror = (e) => {{
     console.warn("🔇 Speech synthesis error:", e.error);
     callback();
   }};
 
-  speechSynthesis.speak(utterance);
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) {{
+    speechSynthesis.onvoiceschanged = () => {{
+      speechSynthesis.speak(utterance);
+    }};
+  }} else {{
+    speechSynthesis.speak(utterance);
+  }}
 
   setTimeout(() => {{
     if (!speechSynthesis.speaking) {{
+      console.warn("⏱ Speech fallback timeout triggered");
       callback();
     }}
   }}, 5000);
@@ -255,6 +258,7 @@ function goHome() {{
 document.addEventListener("DOMContentLoaded", () => {{
   const startBtn = document.getElementById("startBtn");
   const pauseBtn = document.getElementById("pauseBtn");
+  const restartBtn = document.getElementById("restartBtn");
 
   startBtn.addEventListener("click", () => {{
     if (!hasStarted) {{
@@ -262,9 +266,8 @@ document.addEventListener("DOMContentLoaded", () => {{
       paused = false;
       startBtn.style.display = "none";
       pauseBtn.style.display = "inline-block";
-      speak("Repeat after me", "en-US", () => {{
-        runPractice();
-      }});
+      restartBtn.style.display = "inline-block";
+      speak("Repeat after me", "en-US", () => runPractice());
     }}
   }});
 
@@ -273,13 +276,20 @@ document.addEventListener("DOMContentLoaded", () => {{
     if (paused) {{
       paused = false;
       pauseBtn.textContent = "⏸ Pause";
-      speak("Repeat after me", "en-US", () => {{
-        runPractice();
-      }});
+      speak("Repeat after me", "en-US", () => runPractice());
     }} else {{
       paused = true;
       pauseBtn.textContent = "▶️ Resume";
     }}
+  }});
+
+  restartBtn.addEventListener("click", () => {{
+    paused = false;
+    index = 0;
+    attempts = 0;
+    nextRunPending = false;
+    document.getElementById("pauseBtn").textContent = "⏸ Pause";
+    speak("Repeat after me", "en-US", () => runPractice());
   }});
 }});
 </script>
