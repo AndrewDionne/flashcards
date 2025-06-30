@@ -58,7 +58,13 @@ def generate_reading_html(set_name, data):
     </script>
 
     <!-- Reading interaction JS can be added here -->
-
+ 
+   function goHome() {{
+      const pathParts = window.location.pathname.split("/");
+      const repo = pathParts[1];
+      window.location.href = window.location.hostname === "andrewdionne.github.io" ? `/${{repo}}/` : "/";
+    }}
+    
 </body>
 </html>
 """
