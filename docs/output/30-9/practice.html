@@ -1,42 +1,24 @@
-import os
-import json
-from pathlib import Path
-
-def generate_practice_html(set_name, data):
-    """Generate the practice.html page for a flashcard set."""
-
-    # Ensure output directory
-    output_dir = os.path.join("docs", "output", set_name)
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Define file paths
-    practice_path = os.path.join(output_dir, "practice.html")
-   
-    # Prepare data
-    cards_json = json.dumps(data, ensure_ascii=False)
-
-    # Practice HTML
-    practice_html = f"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>{set_name} Practice</title>
+  <title>30-9 Practice</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
 
-      body {{
+      body {
           font-family: -apple-system, BlinkMacSystemFont, sans-serif;
           background-color: #f9f9f9;
           padding: 2rem;
           text-align: center;
-        }}
+        }
 
-        h1 {{
+        h1 {
           font-size: 1.6rem;
           margin-bottom: 1rem;
-        }}
+        }
 
-        .home-btn {{
+        .home-btn {
             position: absolute;
             right: 0px;
             top: 0;
@@ -44,16 +26,16 @@ def generate_practice_html(set_name, data):
             background: none;
             border: none;
             cursor: pointer;
-            }}
+            }
 
-        .result {{
+        .result {
           font-size: 1.2rem;
           color: #333;
           margin-top: 2rem;
           min-height: 2em;
-        }}
+        }
 
-        .flash {{
+        .flash {
           margin: 10px;
           padding: 12px 20px;
           font-size: 1rem;
@@ -63,27 +45,27 @@ def generate_practice_html(set_name, data):
           border-radius: 8px;
           cursor: pointer;
           display: inline-block;
-        }}
+        }
 
-        .flash:hover {{
+        .flash:hover {
           background-color: #0056b3;
-        }}
+        }
 
-        .back {{
+        .back {
           display: block;
           margin-top: 2rem;
           font-size: 0.9rem;
           color: #555;
           text-decoration: none;
-        }}
+        }
 
-        .back:hover {{
+        .back:hover {
           text-decoration: underline;
-        }}
+        }
     </style>
 </head>
 <body>
-<h1>{set_name} practice 
+<h1>30-9 practice 
 
   <button class="home-btn" onclick="goHome()">🏠</button></h1>
   <button id="startBtn" class="flash">▶️ Start Practice</button>
@@ -100,70 +82,70 @@ let attempts = 0;
 let isRunning = false;
 let cachedSpeechConfig = null;
 
-const cards = {{cards_json}};
-const setName = "{{set_name}}";
+const cards = {cards_json};
+const setName = "{set_name}";
 
-function sanitizeFilename(text) {{
+function sanitizeFilename(text) {
   return text.replace(/[^a-zA-Z0-9]/g, "_");
-}}
+}
 
-function playAudio(filename, callback) {{
+function playAudio(filename, callback) {
   const repo = window.location.hostname === "andrewdionne.github.io"
     ? window.location.pathname.split("/")[1]
     : "";
 
   const path = window.location.hostname === "andrewdionne.github.io"
-    ? `/${{repo}}/static/${{setName}}/audio/${{filename}}`
-    : `/custom_static/${{setName}}/audio/${{filename}}`;
+    ? `/${repo}/static/${setName}/audio/${filename}`
+    : `/custom_static/${setName}/audio/${filename}`;
 
   const audio = new Audio(path);
   audio.onended = callback;
-  audio.onerror = () => {{
+  audio.onerror = () => {
     console.warn("⚠️ Audio failed to play:", path);
     callback();
-  }};
-  audio.play().catch(err => {{
+  };
+  audio.play().catch(err => {
     console.warn("🔇 Autoplay blocked or error:", err);
     callback();
-  }});
-}}
+  });
+}
 
-function speak(text, lang, callback) {{
+function speak(text, lang, callback) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
   utterance.onend = callback;
-  utterance.onerror = (e) => {{
+  utterance.onerror = (e) => {
     console.warn("🔇 Speech synthesis error:", e.error);
     callback();
-  }};
+  };
 
   const voices = speechSynthesis.getVoices();
   const voiceMatch = voices.find(v => v.lang.startsWith(lang));
   if (voiceMatch) utterance.voice = voiceMatch;
 
-  if (!voices.length) {{
-    speechSynthesis.onvoiceschanged = () => {{
+  if (!voices.length) {
+    speechSynthesis.onvoiceschanged = () => {
       speechSynthesis.speak(utterance);
-    }};
-  }} else {{
+    };
+  } else {
     speechSynthesis.speak(utterance);
-  }}
+  }
 
-  setTimeout(() => {{
-    if (!speechSynthesis.speaking) {{
+  setTimeout(() => {
+    if (!speechSynthesis.speaking) {
       console.warn("⏱ Fallback: speech synthesis timeout");
       callback();
-    }}
-  }}, 5000);
-}}
+    }
+  }, 5000);
+}
 
-async function assessPronunciation(phrase) {{
+async function assessPronunciation(phrase) {
   const resultDiv = document.getElementById("result");
-  if (!window.SpeechSDK) {{
+  if (!window.SpeechSDK) {
     resultDiv.textContent = "❌ Azure SDK not loaded.";
     return 0;
-  }}
-  try {{
+  }
+  try {
     const speechConfig = await getSpeechConfig();
     const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
@@ -175,37 +157,37 @@ async function assessPronunciation(phrase) {{
       false
     );
     config.applyTo(recognizer);
-    resultDiv.innerHTML = `🎙 Speak: <strong>${{phrase}}</strong>`;
+    resultDiv.innerHTML = `🎙 Speak: <strong>${phrase}</strong>`;
 
-    return new Promise(resolve => {{
-      recognizer.recognized = (s, e) => {{
-        try {{
+    return new Promise(resolve => {
+      recognizer.recognized = (s, e) => {
+        try {
           const data = JSON.parse(e.result.json);
           const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
           const feedback = score >= 85
-            ? `🌟 Excellent! ${{score.toFixed(1)}}%`
+            ? `🌟 Excellent! ${score.toFixed(1)}%`
             : score >= 70
-            ? `✅ Good! ${{score.toFixed(1)}}%`
-            : `⚠️ Needs work: ${{score.toFixed(1)}}%`;
+            ? `✅ Good! ${score.toFixed(1)}%`
+            : `⚠️ Needs work: ${score.toFixed(1)}%`;
           resultDiv.innerHTML = feedback;
           recognizer.stopContinuousRecognitionAsync();
           resolve(score);
-        }} catch (err) {{
+        } catch (err) {
           resultDiv.innerHTML = "⚠️ Parsing error.";
           recognizer.stopContinuousRecognitionAsync();
           resolve(0);
-        }}
-      }};
+        }
+      };
       recognizer.startContinuousRecognitionAsync();
-    }});
-  }} catch (err) {{
+    });
+  } catch (err) {
     console.error("Azure error:", err);
     document.getElementById("result").textContent = "❌ Azure config error.";
     return 0;
-  }}
-}}
+  }
+}
 
-async function getSpeechConfig() {{
+async function getSpeechConfig() {
   if (cachedSpeechConfig) return cachedSpeechConfig;
   const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
   const data = await res.json();
@@ -215,96 +197,88 @@ async function getSpeechConfig() {{
   speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
   cachedSpeechConfig = speechConfig;
   return speechConfig;
-}}
+}
 
-async function runPractice() {{
+async function runPractice() {
   if (paused || isRunning || index >= cards.length) return;
   isRunning = true;
 
   const resultDiv = document.getElementById("result");
   const entry = cards[index];
-  const filename = `${{index}}_${{sanitizeFilename(entry.phrase)}}.mp3`;
+  const filename = `${index}_${sanitizeFilename(entry.phrase)}.mp3`;
 
   await new Promise(resolve => playAudio(filename, resolve));
-  if (paused) {{ isRunning = false; return; }}
+  if (paused) { isRunning = false; return; }
 
   const score = await assessPronunciation(entry.phrase);
-  if (paused) {{ isRunning = false; return; }}
+  if (paused) { isRunning = false; return; }
 
-  if (score >= 70 || attempts >= 2) {{
+  if (score >= 70 || attempts >= 2) {
     index++;
     attempts = 0;
-  }} else {{
+  } else {
     attempts++;
     resultDiv.innerHTML += "<br>🔁 Try again!";
-  }}
+  }
 
   isRunning = false;
 
-  setTimeout(() => {{
+  setTimeout(() => {
     if (!paused) runPractice();
-  }}, 1800);
-}}
+  }, 1800);
+}
 
-function startPracticeFlow() {{
+function startPracticeFlow() {
   isRunning = false;
   paused = false;
-  speak("Repeat after me", "en-US", () => {{
+  speak("Repeat after me", "en-US", () => {
     runPractice();
-  }});
-}}
+  });
+}
 
-document.addEventListener("DOMContentLoaded", () => {{
+document.addEventListener("DOMContentLoaded", () => {
   const startBtn = document.getElementById("startBtn");
   const pauseBtn = document.getElementById("pauseBtn");
   const restartBtn = document.getElementById("restartBtn");
 
-  startBtn.addEventListener("click", () => {{
-    if (!hasStarted) {{
+  startBtn.addEventListener("click", () => {
+    if (!hasStarted) {
       hasStarted = true;
       startBtn.style.display = "none";
       pauseBtn.style.display = "inline-block";
       restartBtn.style.display = "inline-block";
       startPracticeFlow();
-    }}
-  }});
+    }
+  });
 
-  pauseBtn.addEventListener("click", () => {{
+  pauseBtn.addEventListener("click", () => {
     if (!hasStarted) return;
     paused = !paused;
     pauseBtn.textContent = paused ? "▶️ Resume" : "⏸ Pause";
-    if (!paused) {{
+    if (!paused) {
       startPracticeFlow();
-    }}
-  }});
+    }
+  });
 
-  restartBtn.addEventListener("click", () => {{
+  restartBtn.addEventListener("click", () => {
     index = 0;
     attempts = 0;
     paused = false;
     isRunning = false;
     document.getElementById("pauseBtn").textContent = "⏸ Pause";
     startPracticeFlow();
-  }});
-}});
+  });
+});
 
-function goHome() {{
+function goHome() {
   const pathParts = window.location.pathname.split("/");
   const repo = pathParts[1];
   window.location.href = window.location.hostname === "andrewdionne.github.io"
-    ? `/${{repo}}/`
+    ? `/${repo}/`
     : "/";
-}}
+}
 </script>
 
 
 </body>
 </html>
-"""
-
-    with open(practice_path, "w", encoding="utf-8") as f:
-        f.write(practice_html)
-
-    print(f"✅ practice.html generated for: {set_name}")
-
-   
