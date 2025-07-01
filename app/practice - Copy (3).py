@@ -89,7 +89,7 @@ def generate_practice_html(set_name, data):
   <button id="startBtn" class="flash">▶️ Start Practice</button>
   <button id="pauseBtn" class="flash" style="margin-left: 1rem;">⏸ Pause</button>
   <button id="restartBtn" class="flash" style="display:none;">🔁 Restart</button>
- <div id="result" class="result">🎙 Get ready...</div>
+ 
 
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script>
@@ -262,34 +262,31 @@ document.addEventListener("DOMContentLoaded", () => {{
   startBtn.addEventListener("click", () => {{
     if (!hasStarted) {{
       hasStarted = true;
-      index = 0;
-      attempts = 0;
       paused = false;
-      isRunning = false;
       startBtn.style.display = "none";
       pauseBtn.style.display = "inline-block";
       restartBtn.style.display = "inline-block";
-      startPracticeFlow();
+      speak("Repeat after me", "en-US", () => runPractice());
     }}
   }});
+
 
   pauseBtn.addEventListener("click", () => {{
     if (!hasStarted) return;
     paused = !paused;
     pauseBtn.textContent = paused ? "▶️ Resume" : "⏸ Pause";
    if (!paused && !isRunning) {{
-    runPractice();
+      speak("Repeat after me", "en-US", () => runPractice());
     }}
   }});
 
   restartBtn.addEventListener("click", () => {{
     index = 0;
     attempts = 0;
-    hasStarted = true;
     paused = false;
     isRunning = false;
     document.getElementById("pauseBtn").textContent = "⏸ Pause";
-    startPracticeFlow();
+    speak("Repeat after me", "en-US", () => runPractice());
   }});
 }});
 
