@@ -82,8 +82,8 @@ let attempts = 0;
 let isRunning = false;
 let cachedSpeechConfig = null;
 
-const cards = {cards_json};
-const setName = "{set_name}";
+const cards = [{"phrase": "Dziękuję", "pronunciation": "jen-KOO-yeh", "meaning": "Thank you"}, {"phrase": "Przepraszam", "pronunciation": "psheh-PRAH-shahm", "meaning": "Sorry/Excuse me"}, {"phrase": "Proszę powtórzyć!", "pronunciation": "PROH-sheh pohv-TOO-zheetch", "meaning": "Please repeat!"}, {"phrase": "Co to znaczy", "pronunciation": "tso toh ZNAH-chee", "meaning": "What does it mean?"}, {"phrase": "Tak", "pronunciation": "tahk", "meaning": "Yes"}, {"phrase": "Nie", "pronunciation": "nyeh", "meaning": "No"}, {"phrase": "Nie wiem", "pronunciation": "nyeh VYEM", "meaning": "I don't know"}, {"phrase": "Proszę napisać!", "pronunciation": "PROH-sheh nah-PEE-sahtch", "meaning": "Please write it down!"}, {"phrase": "Gdzie jest toaleta", "pronunciation": "g-jeh yest toh-ah-LEH-tah", "meaning": "Where is the toilet?"}, {"phrase": "Proszę mówić wolniej", "pronunciation": "PROH-sheh MOO-veech VOL-nyeh", "meaning": "Please speak more slowly"}, {"phrase": "Mam pytanie", "pronunciation": "mahm pih-TAH-nyeh", "meaning": "I have a question"}, {"phrase": "Nie rozumiem", "pronunciation": "nyeh roh-ZOO-myem", "meaning": "I don't understand"}];
+const setName = "30-07";
 
 function sanitizeFilename(text) {
   return text.replace(/[^a-zA-Z0-9]/g, "_");
@@ -98,11 +98,17 @@ function playAudio(filename, callback) {
     ? `/${repo}/static/${setName}/audio/${filename}`
     : `/custom_static/${setName}/audio/${filename}`;
 
-  const audio = new Audio(path);
-  audio.onended = callback;
-  audio.onerror = () => {
-    console.warn("⚠️ Audio failed to play:", path);
-    callback();
+  const preload = document.getElementById("preloadTest");
+  const source = document.getElementById("preloadSource");
+  source.src = fullPath;
+  preload.load();
+  preload.play().catch(() => {
+    // fallback: create new Audio if autoplay blocked
+    const audio = new Audio(fullPath);
+    audio.onended = callback;
+    audio.onerror = () => {
+      console.warn("⚠️ Audio failed to play fallback:", fullPath);
+      callback();
   };
   audio.play().catch(err => {
     console.warn("🔇 Autoplay blocked or error:", err);

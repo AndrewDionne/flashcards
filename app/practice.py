@@ -100,8 +100,8 @@ let attempts = 0;
 let isRunning = false;
 let cachedSpeechConfig = null;
 
-const cards = {{cards_json}};
-const setName = "{{set_name}}";
+const cards = {cards_json};
+const setName = "{set_name}";
 
 function sanitizeFilename(text) {{
   return text.replace(/[^a-zA-Z0-9]/g, "_");
@@ -116,11 +116,17 @@ function playAudio(filename, callback) {{
     ? `/${{repo}}/static/${{setName}}/audio/${{filename}}`
     : `/custom_static/${{setName}}/audio/${{filename}}`;
 
-  const audio = new Audio(path);
-  audio.onended = callback;
-  audio.onerror = () => {{
-    console.warn("⚠️ Audio failed to play:", path);
-    callback();
+  const preload = document.getElementById("preloadTest");
+  const source = document.getElementById("preloadSource");
+  source.src = fullPath;
+  preload.load();
+  preload.play().catch(() => {{
+    // fallback: create new Audio if autoplay blocked
+    const audio = new Audio(fullPath);
+    audio.onended = callback;
+    audio.onerror = () => {{
+      console.warn("⚠️ Audio failed to play fallback:", fullPath);
+      callback();
   }};
   audio.play().catch(err => {{
     console.warn("🔇 Autoplay blocked or error:", err);
