@@ -182,7 +182,7 @@ async function assessPronunciation(phrase) {{
         try {{
           const data = JSON.parse(e.result.json);
           const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
-          const feedback = score = 100
+          const feedback = score >= 85
             ? `🌟 Excellent! ${{score.toFixed(1)}}%`
             : score >= 70
             ? `✅ Good! ${{score.toFixed(1)}}%`
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {{
       startBtn.style.display = "none";
       pauseBtn.style.display = "inline-block";
       restartBtn.style.display = "inline-block";
-      speak("run practice", "en-US", () => runPractice());
+      speak("Repeat after me", "en-US", () => runPractice());
     }}
   }});
 
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     paused = !paused;
     pauseBtn.textContent = paused ? "▶️ Resume" : "⏸ Pause";
     if (!paused && !isRunning) {{
-      speak("pause button", "en-US", () => runPractice());
+      speak("Repeat after me", "en-US", () => runPractice());
     }}
   }});
 
@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     attempts = 0;
     isRunning = false;
     document.getElementById("pauseBtn").textContent = "⏸ Pause";
-    speak("restart button", "en-US", () => runPractice());
+    speak("Repeat after me", "en-US", () => runPractice());
   }});
 }});
 
