@@ -91,132 +91,164 @@ def generate_practice_html(set_name, data):
   <button id="restartBtn" class="flash" style="display:none;">🔁 Restart</button>
  <div id="result" class="result">🎙 Get ready...</div>
 
-<audio id="preloadTest" preload="auto">
-      <source id="preloadSource" src="" type="audio/mpeg">
-    </audio>
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script>
+let hasStarted = false;
+let paused = false;
+let index = 0;
+let attempts = 0;
+let isRunning = false;
+let cachedSpeechConfig = null;
+let preloadedAudio = {{}};
 
-  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-  <script>
-  const cards = {cards_json};
-  const setName = "{set_name}";
-  let index = 0;
-  let attempts = 0;
-  let cachedSpeechConfig = null;
+const cards = {cards_json};
+const setName = "{set_name}";
 
-  function sanitizeFilename(text) {{
-        return text.replace(/[^a-zA-Z0-9]/g, "_");
-      }}
+function sanitizeFilename(text) {{
+  return text.replace(/[^a-zA-Z0-9]/g, "_");
+}}
 
-  function speak(text, lang, callback) {{
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.onend = callback;
+function playAudio(filename, callback) {{
+  const audio = preloadedAudio[filename];
+  if (!audio) {{
+    console.warn("⚠️ Audio not preloaded:", filename);
+    callback();
+    return;
+  }}
+
+  const newAudio = new Audio(audio.src);
+
+  audio.onended = callback;
+  audio.onerror = () => {{
+    console.warn("⚠️ Audio failed to play:", filename);
+    document.getElementById("result").textContent = "⚠️ Audio failed to play.";
+    callback();
+  }};
+   // Important: reset playback to start
+  audio.currentTime = 0;
+
+  const playPromise = newAudio.play();
+  if (playPromise !== undefined) {{
+  playPromise
+    .then(() => {{
+      console.log("🔊 iOS-safe audio playing:", filename);
+    }})
+    .catch(err => {{
+      console.warn("🔇 iOS-safe audio blocked:", err);
+      callback();  // move on anyway
+    }});
+  }}
+}}
+
+function speak(text, lang, callback) {{
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  let called = false;
+  
+  const safeCallback = () => {{
+    if (!called) {{
+      called = true;
+      callback();
+    }}
+  }};
+
+  utterance.onend = callback;
+  utterance.onerror = (e) => {{
+    console.warn("🔇 Speech synthesis error:", e.error);
+    safeCallback();
+  }};
+
+  const speakNow = () => {{
+    const voices = speechSynthesis.getVoices();
+    const preferredVoices = ["Alex", "Daniel", "Samantha", "Karen"];
+    const voiceMatch = 
+    voices.find(v => preferredVoices.includes(v.name)) ||
+    voices.find(v => v.lang.startsWith(lang));
+
+    if (voiceMatch) {{
+      utterance.voice = voiceMatch;
     speechSynthesis.speak(utterance);
-  }}
-  document.addEventListener("DOMContentLoaded", () => {{
-      if (!window.SpeechSDK) {{
-          console.error("❌ Azure Speech SDK failed to load.");
-      }} else {{
-          console.log("✅ Azure Speech SDK loaded successfully.");
-      }}
-  }});
-  function playAudio(filename, callback) {{
-    const repo = window.location.hostname === "andrewdionne.github.io"
-      ? window.location.pathname.split("/")[1]
-      : "";
+    console.log("🗣 Using voice:", voiceMatch.name);
+    }} else {{
+      console.warn("⚠️ No preferred voice found.");
+    }}
 
-    const preload = document.getElementById("preloadTest");
-    const source = document.getElementById("preloadSource");
-    source.src = fullPath;
-    preload.load();
-    preload.play().catch(() => {{
-      // fallback: create new Audio if autoplay blocked
-      const audio = new Audio(fullPath);
-      audio.onended = callback;
-      audio.onerror = () => {{
-        console.warn("⚠️ Audio failed to play fallback:", fullPath);
-        callback();
+    speechSynthesis.speak(utterance);
+  }};
+
+  if (!speechSynthesis.getVoices().length) {{
+    speechSynthesis.onvoiceschanged = speakNow;
+  }} else {{
+    speakNow();
+  }}
+  
+  setTimeout(() => {{
+    if (!speechSynthesis.speaking) {{
+      console.warn("⏱ Fallback: speech synthesis timeout");
+      safeCallback();
+    }}
+  }}, 5000);
+}}
+
+async function assessPronunciation(phrase) {{
+  const resultDiv = document.getElementById("result");
+  if (!window.SpeechSDK) {{
+    resultDiv.textContent = "❌ Azure SDK not loaded.";
+    return 0;
+  }}
+  try {{
+    const speechConfig = await getSpeechConfig();
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+    const config = new SpeechSDK.PronunciationAssessmentConfig(
+      phrase,
+      SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
+      SpeechSDK.PronunciationAssessmentGranularity.FullText,
+      false
+    );
+    config.applyTo(recognizer);
+    resultDiv.innerHTML = `🎙 Speak: <strong>${{phrase}}</strong>`;
+
+    return new Promise(resolve => {{
+      recognizer.recognized = (s, e) => {{
+        try {{
+          const data = JSON.parse(e.result.json);
+          const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
+          const feedback = score >= 85
+            ? `🌟 Excellent! ${{score.toFixed(1)}}%`
+            : score >= 70
+            ? `✅ Good! ${{score.toFixed(1)}}%`
+            : `⚠️ Needs work: ${{score.toFixed(1)}}%`;
+          resultDiv.innerHTML = feedback;
+          recognizer.stopContinuousRecognitionAsync();
+          resolve(score);
+        }} catch (err) {{
+          resultDiv.innerHTML = "⚠️ Parsing error.";
+          recognizer.stopContinuousRecognitionAsync();
+          resolve(0);
+        }}
       }};
-    audio.play();
-
-    setTimeout(() => {{
-      if (!audio.ended) {{
-        audio.pause();
-        callback();
-      }}
-    }}, 5000);
+      recognizer.startContinuousRecognitionAsync();
+    }});
+  }} catch (err) {{
+    console.error("Azure error:", err);
+    document.getElementById("result").textContent = "❌ Azure config error.";
+    return 0;
   }}
+}}
 
-  function adjustScore(score) {{
-
-    if (score <= 99) return score - 9;
-    if (score <= 80) return score - 10;
-    return score - 12;
-  }}
-
-  async function assessPronunciation(referenceText) {{
-    const resultDiv = document.getElementById("result");
-
-    if (!window.SpeechSDK) {{
-      resultDiv.textContent = "❌ Azure SDK not loaded.";
-      return 0;
-    }}
-
-    try {{
-      const speechConfig = await getSpeechConfig();
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-      const config = new SpeechSDK.PronunciationAssessmentConfig(
-        referenceText,
-        SpeechSDK.PronunciationAssessmentGradingSystem.HundredMark,
-        SpeechSDK.PronunciationAssessmentGranularity.FullText,
-        false
-      );
-      config.applyTo(recognizer);
-
-      resultDiv.innerHTML = `🎙 Speak: <strong>${{referenceText}}</strong>`;
-
-      return new Promise(resolve => {{
-        recognizer.recognized = (s, e) => {{
-          try {{
-            const data = JSON.parse(e.result.json);
-            const score = data?.NBest?.[0]?.PronunciationAssessment?.AccuracyScore || 0;
-            let feedback = score >= 85
-              ? `💯 Excellent! ${{score.toFixed(1)}}%`
-              : score >= 70
-              ? `✅ Good! ${{score.toFixed(1)}}%`
-              : `⚠️ Needs work: ${{score.toFixed(1)}}%`;
-            resultDiv.innerHTML = feedback;
-            recognizer.stopContinuousRecognitionAsync();
-            resolve(score);
-          }} catch (err) {{
-            resultDiv.textContent = "⚠️ Recognition error.";
-            recognizer.stopContinuousRecognitionAsync();
-            resolve(0);
-          }}
-        }};
-
-        recognizer.startContinuousRecognitionAsync();
-      }});
-    }} catch (err) {{
-      console.error("Azure error:", err);
-      document.getElementById("result").textContent = "❌ Error contacting Azure.";
-      return 0;
-    }}
-  }}
-
-  async function getSpeechConfig() {{
-    if (cachedSpeechConfig) return cachedSpeechConfig;
-    const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
-    const data = await res.json();
-    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
-    speechConfig.speechRecognitionLanguage = "pl-PL";
-    speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "1500");
-    speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
-    cachedSpeechConfig = speechConfig;
-    return speechConfig;
-  }}
+async function getSpeechConfig() {{
+  if (cachedSpeechConfig) return cachedSpeechConfig;
+  const res = await fetch("https://flashcards-5c95.onrender.com/api/token");
+  const data = await res.json();
+  const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(data.token, data.region);
+  speechConfig.speechRecognitionLanguage = "pl-PL";
+  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "1500");
+  speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs, "1000");
+  cachedSpeechConfig = speechConfig;
+  return speechConfig;
+}}
 
 async function runPractice() {{
   if (paused || isRunning || index >= cards.length) return;
