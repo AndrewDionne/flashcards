@@ -23,150 +23,150 @@ def generate_flashcard_html(set_name, data):
   <title>{set_name} Flashcards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
- body {{
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 20px;
+            background-color: #f8f9fa;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
+        }}
+        h1 {{
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+            text-align: center;
+        }}
+        
+        .home-btn {{
+            position: absolute;
+            right: 0px;
+            top: 0;
+            font-size: 1.4em;
+            background: none;
+            border: none;
+            cursor: pointer;
+            }}
 
-  h1 {{
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    position: relative;
-    width: 100%;
-    text-align: center;
-  }}
+        .card {{
+            width: 90vw;
+            max-width: 350px;
+            height: 220px;
+            perspective: 1000px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }}
 
-  .home-btn {{
-    position: absolute;
-    right: 0;
-    top: 0;
-    font-size: 1.4em;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }}
+        .card-inner {{
+            width: 100%; 
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
 
-  .card {{
-    width: 90vw;
-    max-width: 350px;
-    height: 220px;
-    perspective: 1000px;
-    margin: 20px auto;
-    box-sizing: border-box;
-  }}
+        }}
+        .card.flipped .card-inner {{
+            transform: rotateY(180deg);
+        }}
+        .card-front, .card-back {{
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
+        }}
+        .card-front {{
+            background: #ffffff;
+            font-size: 1.1em;
+            font-weight: normal;
+            text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }}
+        .card-back {{
+            min-height: 100%;
+            background: #e9ecef;
+            transform: rotateY(180deg);
+            flex-direction: column;
+            font-size: 1.1em;
+            text-align: center;
+            word-wrap: break-word;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }}
+        .card-back button {{
+            margin-top: auto; /* Pushes it to the bottom of the column */
+            margin-bottom: 20px; /* Optional spacing from bottom */
+            padding: 8px 16px;
+            font-size: 1em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }}
+        .nav-buttons {{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }}
 
-  .card-inner {{
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transition: transform 0.6s;
-    transform-origin: center;
-    transform-style: preserve-3d;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }}
+        .nav-button {{
+        padding: 6px 12px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100px;
+            height: 30px;
+            cursor: pointer;
+        }}
+        .play-audio-button {{
+            margin-bottom: 10px;
+            padding: 4px 10px;
+            font-size: 0.9em;
+            background-color: #28a745;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            width: auto; /* or a fixed smaller width */
+            height: auto;
+        }}
 
-  .card.flipped .card-inner {{
-    transform: rotateY(180deg);
-  }}
-
-  .card-front,
-  .card-back {{
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    backface-visibility: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    word-wrap: break-word;
-    text-align: center;
-    flex-direction: column;
-  }}
-
-  .card-front {{
-    background: #ffffff;
-    font-size: 1.1em;
-    font-weight: bold;
-  }}
-
-  .card-back {{
-    background: #e9ecef;
-    transform: rotateY(180deg);
-  }}
-
-  .nav-buttons {{
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-  }}
-
-  .nav-button {{
-    width: 120px;
-    height: 40px;
-    padding: 10px;
-    font-size: 1em;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: center;
-  }}
-
-  .nav-button:disabled {{
-    background-color: #aaa;
-    cursor: default;
-  }}
-
-  .action-buttons {{
-    display: none; /* Hidden by default, shown on flip */
-    gap: 10px;
-    margin-top: 15px;
-    flex-direction: row;
-    justify-content: center;
-  }}
-
-  .action-button {{
-    padding: 8px 14px;
-    font-size: 0.95em;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }}
-
-  .card.flipped .action-buttons {{
-    display: flex; /* Show action buttons only when flipped */
-  }}
-
-  .pronunciation-result {{
-    margin-top: 10px;
-    font-size: 0.9em;
-    text-align: center;
-  }}
-
-  button:hover:not(:disabled) {{
-    opacity: 0.9;
-  }}
+        button {{
+            border: none;
+            cursor: pointer;
+        
+        }}
+        .nav-button:disabled {{
+            background-color: #aaa;
+            cursor: default;
+        }}
     </style>
 </head>
 <body>
