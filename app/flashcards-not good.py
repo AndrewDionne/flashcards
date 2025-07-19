@@ -23,150 +23,141 @@ def generate_flashcard_html(set_name, data):
   <title>{set_name} Flashcards</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0; padding: 20px;
-            background-color: #f8f9fa;
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box;
-            overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
-        }}
-        h1 {{
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            position: relative;
-            width: 100%;
-            text-align: center;
-        }}
-        
-        .home-btn {{
-            position: absolute;
-            right: 0px;
-            top: 0;
-            font-size: 1.4em;
-            background: none;
-            border: none;
-            cursor: pointer;
-            }}
+    body {{
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 0; padding: 20px;
+        background-color: #f8f9fa;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        box-sizing: border-box;
+        overflow-x: hidden; /* prevents weird horizontal scroll on iPhone */
+    }}
 
-        .card {{
-            width: 90vw;
-            max-width: 350px;
-            height: 220px;
-            perspective: 1000px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            margin-left: auto;
-            margin-right: auto;
-            box-sizing: border-box;
-        }}
+    h1 {{
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        position: relative;
+        width: 100%;
+        text-align: center;
+    }}
 
-        .card-inner {{
-            width: 100%; 
-            height: 100%;
-            position: relative;
-            transition: transform 0.6s;
-            transform-origin: center;
-            transform-style: preserve-3d;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 12px;
+    .home-btn {{
+        position: absolute;
+        right: 0px;
+        top: 0;
+        font-size: 1.4em;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }}
 
-        }}
-        .card.flipped .card-inner {{
-            transform: rotateY(180deg);
-        }}
-        .card-front, .card-back {{
-            position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            backface-visibility: hidden;
-        }}
-        .card-front {{
-            background: #ffffff;
-            font-size: 1.1em;
-            font-weight: normal;
-            text-align: center;
-            word-wrap: break-word;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }}
-        .card-back {{
-            min-height: 100%;
-            background: #e9ecef;
-            transform: rotateY(180deg);
-            flex-direction: column;
-            font-size: 1.1em;
-            text-align: center;
-            word-wrap: break-word;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }}
-        .card-back button {{
-            margin-top: auto; /* Pushes it to the bottom of the column */
-            margin-bottom: 20px; /* Optional spacing from bottom */
-            padding: 8px 16px;
-            font-size: 1em;
-            background-color: #28a745;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-        }}
-        .nav-buttons {{
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 20px;
-        }}
+    .card {{
+        width: 90vw;
+        max-width: 350px;
+        height: 220px;
+        perspective: 1000px;
+        margin: 20px auto;
+        box-sizing: border-box;
+    }}
 
-        .nav-button {{
-        padding: 6px 12px;
-            font-size: 1em;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            width: 100px;
-            height: 30px;
-            cursor: pointer;
-        }}
-        .play-audio-button {{
-            margin-bottom: 10px;
-            padding: 4px 10px;
-            font-size: 0.9em;
-            background-color: #28a745;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            width: auto; /* or a fixed smaller width */
-            height: auto;
-        }}
+    .card-inner {{
+        width: 100%; 
+        height: 100%;
+        position: relative;
+        transition: transform 0.6s;
+        transform-origin: center;
+        transform-style: preserve-3d;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+    }}
 
-        button {{
-            border: none;
-            cursor: pointer;
-        
-        }}
-        .nav-button:disabled {{
-            background-color: #aaa;
-            cursor: default;
-        }}
+    .card.flipped .card-inner {{
+        transform: rotateY(180deg);
+    }}
+
+    .card-front, .card-back {{
+        position: absolute;
+        width: 100%; height: 100%;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        word-wrap: break-word;
+    }}
+
+    .card-front {{
+        background: #ffffff;
+        font-size: 1.1em;
+        font-weight: bold;
+    }}
+
+    .card-back {{
+        background: #e9ecef;
+        transform: rotateY(180deg);
+        flex-direction: column;
+        font-size: 1.1em;
+    }}
+
+    .card-back-content {{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }}
+
+    .nav-buttons, .action-buttons {{
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }}
+
+    .nav-button,
+    .action-button {{
+        padding: 10px 20px;
+        font-size: 1em;
+        border: none;
+        border-radius: 8px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+    }}
+
+    .nav-button:disabled,
+    .action-button:disabled {{
+        background-color: #aaa;
+        cursor: default;
+    }}
+
+    .play-audio-button {{
+        padding: 6px 14px;
+        font-size: 0.95em;
+        background-color: #28a745;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        margin-top: 10px;
+    }}
+
+    .card-back button {{
+        margin-top: auto;
+        margin-bottom: 20px;
+    }}
+
+    button:hover:not(:disabled) {{
+        opacity: 0.9;
+    }}
     </style>
 </head>
 <body>
@@ -180,8 +171,13 @@ def generate_flashcard_html(set_name, data):
   </div>
 
   <div class="nav-buttons">
-    <button id="prevBtn">Previous</button>
-    <button id="nextBtn">Next</button>
+    <button id="prevBtn" class="nav-button">Previous</button>
+    <button id="nextBtn" class="nav-button">Next</button>
+  </div>
+
+  <div class="action-buttons">
+    <button class="action-button">▶️ Play</button>
+    <button class="action-button">🎤 Test</button>
   </div>
 
   <audio id="audioPlayer"><source id="audioSource" src="" type="audio/mpeg" /></audio>
