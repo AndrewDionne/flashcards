@@ -25,57 +25,15 @@
 </head>
 <body>
   <h1>🧠 Flashcards – Choose a Set</h1>
-   {% if sets %}
-  <form id="deleteForm">
-    <ul>
-      {% for set in sets %}
-      <li>
-        <input type="checkbox" class="set-checkbox" value="{{ set.name }}">
-        <div class="set-info">
-          <div class="card-link">
-            <a href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
-              ▶ {{ set.name }} {% if set.count != "?" %}({{ set.count }} cards){% endif %}
-            </a>
-          </div>
-        {% endfor %}
-      </ul>
-      <div class="actions">
-      <button type="button" onclick="deleteSelected()">🗑 Delete Selected</button>
-      <a href="/create">➕ Create New Set</a>
+    {% for set in sets %}
+      <div class="card-link">
+        <a href="{{ url_for('serve_output_file', filename=set.name ~ '/flashcards.html') }}">
+          ▶ {{ set.name }} {% if set.count != "?" %}({{ set.count }} cards){% endif %}
+        </a>
+      </div>
+    {% endfor %}
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/">← Back to Learning Modes</a>
     </div>
-  </form>
-  {% else %}
-    <p>No flashcard sets found yet.</p>
-    <div class="actions">
-      <a href="/create">➕ Create New Set</a>
-    </div>
-  {% endif %}
-
-  <script>
-    function deleteSelected() {
-      const selected = Array.from(document.querySelectorAll('.set-checkbox:checked'))
-        .map(cb => cb.value);
-      if (!selected.length) {
-        alert('Please select at least one set to delete.');
-        return;
-      }
-      if (!confirm(`Delete ${selected.length} set(s)?`)) return;
-
-      fetch('/delete_sets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sets: selected })
-      })
-      .then(res => {
-        if (res.ok) location.reload();
-        else alert('Error deleting sets.');
-      })
-      .catch(err => alert('Network error: ' + err));
-    }
-  </script>
-  
-        <div style="text-align: center; margin-top: 2rem;">
-          <a href="/">← Back to Learning Modes</a>
-        </div>
 </body>
 </html>
