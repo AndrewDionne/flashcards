@@ -74,10 +74,13 @@
 <body>
   <h1>Manage Flashcard Sets</h1>
 
+  <form action="/" method="GET" style="text-align: center;">
+    <button type="submit" style="margin-bottom: 20px;">🏠 Back to Home</button>
+  </form>
+  
   <!-- Create Set -->
-  <form method="POST" action="/create_set">
-    <input type="text" name="new_set_name" placeholder="New set name..." required />
-    <button type="submit">Create Set</button>
+  <form method="GET" action="/create">
+    <button type="submit">➕ New Set</button>
   </form>
 
   <!-- Update Modes + Delete -->
