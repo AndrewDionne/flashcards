@@ -30,6 +30,11 @@ def load_sets_with_counts():
 
     return sets
 
+def load_sets_for_mode(mode):
+    sets = load_sets_with_counts()
+    set_modes = load_set_modes()
+    return [s for s in sets if mode in set_modes.get(s["name"], [])]
+
 def get_azure_token():
     AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
     AZURE_REGION = os.environ.get("AZURE_REGION", "canadaeast")
@@ -46,6 +51,21 @@ def get_azure_token():
         return jsonify({"token": response.text, "region": AZURE_REGION})
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
+
+def get_all_sets():
+    sets_root = Path("docs/sets")
+    return sorted([s.name for s in sets_root.iterdir() if s.is_dir()])
+
+
+def load_set_modes():
+    config_path = Path("sets/mode_config.json")
+    return json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
+
+
+def save_set_modes(data):
+    config_path = Path("sets/mode_config.json")
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def delete_set(set_name):
     from .git_utils import commit_and_push_changes

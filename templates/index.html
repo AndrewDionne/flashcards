@@ -16,7 +16,28 @@
       font-size: 2rem;
       margin-bottom: 2rem;
     }
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 600px;
+    }
 
+    .mode-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-align: center;
+    }
+    .mode-btn:hover {
+      background-color: #0056b3;
+    }
     .mode-grid {
       display: flex;
       flex-wrap: wrap;
@@ -55,7 +76,7 @@
     <a href="/reading" class="mode-link">📖 Reading</a>
     <a href="/listening" class="mode-link">🎧 Listening</a>
     <a href="/test" class="mode-link">🎓 Test Yourself</a>
-    <a href="/create" class="mode-link">➕ Add New Set</a>
+    <a href="/manage_sets"><button class="mode-btn">Manage Flashcard Sets</button></a>
   </div>
   <div class="footer">Built with ❤️ for Polish learners</div>
 </body>
