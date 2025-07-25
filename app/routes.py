@@ -18,8 +18,10 @@ def init_routes(app):
 
     # === Public Home ===
     @app.route("/")
-    def landing_page():
-        return render_template("index.html")
+    def home():
+        sets = get_all_sets()  # or however you load set names
+        set_modes = load_set_modes()  # your config loader
+        return render_template("index.html", sets=sets, set_modes=set_modes)
 
     # === Learning Mode Pages ===
     @app.route("/flashcards")
