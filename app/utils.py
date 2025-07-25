@@ -9,6 +9,7 @@ from .flashcards import generate_flashcard_html
 from .reading import generate_reading_html
 from .listening import generate_listening_html
 from .test import generate_test_html
+SETS_DIR = Path("docs/sets")
 
 def sanitize_filename(text):
     return re.sub(r'[^a-zA-Z0-9]', '_', text)
@@ -53,17 +54,16 @@ def get_azure_token():
         return jsonify({"error": str(e)}), 500
 
 def get_all_sets():
-    sets_root = Path("docs/sets")
-    return sorted([s.name for s in sets_root.iterdir() if s.is_dir()])
+    sets_root = SETS_DIR
+    return sorted([s.name for s in SETS_DIR.iterdir() if s.is_dir()])
 
 
 def load_set_modes():
-    config_path = Path("sets/mode_config.json")
+    config_path = SETS_DIR / "mode_config.json"
     return json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
 
-
 def save_set_modes(data):
-    config_path = Path("sets/mode_config.json")
+    config_path = SETS_DIR / "mode_config.json"
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -72,7 +72,7 @@ def delete_set(set_name):
 
     output_dir = Path("docs/output") / set_name
     static_dir = Path("docs/static") / set_name
-    sets_dir = Path("docs/sets") / set_name
+    sets_dir = SETS_DIR / set_name
 
     for path in [output_dir, static_dir, sets_dir]:
         if path.exists():
@@ -156,7 +156,10 @@ def generate_mode_landing_page(set_name):
 def handle_flashcard_creation(form):
     set_name = form["set_name"].strip()
     json_input = form["json_input"].strip()
-    data = json.loads(json_input)
+    try:
+        data = json.loads(json_input)
+    except json.JSONDecodeError:
+        return f"<h2 style='color:red;'>❌ Invalid JSON input format.</h2>", 400
 
     for entry in data:
         if not all(k in entry for k in ("phrase", "pronunciation", "meaning")):
@@ -164,10 +167,11 @@ def handle_flashcard_creation(form):
 
     audio_dir = os.path.join("docs", "static", set_name, "audio")
     output_dir = os.path.join("docs", "output", set_name)
-    sets_dir = os.path.join("docs", "sets", set_name)
+    sets_dir = SETS_DIR / set_name
+    sets_dir.mkdir(parents=True, exist_ok=True)
     os.makedirs(audio_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(sets_dir, exist_ok=True)
+    
 
     for i, entry in enumerate(data):
         phrase = entry["phrase"]
@@ -195,7 +199,7 @@ def handle_flashcard_creation(form):
     update_docs_homepage()
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
-    return redirect(f"/output/{set_name}/landing.html")
+    return redirect(f"/output/{set_name}/index.html")
 
 def update_docs_homepage():
     docs_path = Path("docs")
