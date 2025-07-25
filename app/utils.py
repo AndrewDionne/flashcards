@@ -102,6 +102,30 @@ def delete_set_and_push(set_name):
     delete_set(set_name)
     # Sample HTML for a mode selection landing page (for a given set)
 
+def generate_set_index_html(set_name):
+    set_output_path = Path("docs/output") / set_name
+    if not set_output_path.exists():
+        print(f"❌ Cannot generate index — output folder not found for: {set_name}")
+        return
+
+    # Discover which mode pages exist
+    modes = [
+        f.stem for f in set_output_path.glob("*.html")
+        if f.stem in {"flashcards", "practice", "reading", "listening", "test"}
+    ]
+
+    # Load index template
+    env = Environment(loader=FileSystemLoader("templates"))
+    template = env.get_template("set_index.html")
+
+    # Render
+    rendered = template.render(set_name=set_name, modes=modes)
+
+    # Write to output/<set>/index.html
+    with open(set_output_path / "index.html", "w", encoding="utf-8") as f:
+        f.write(rendered)
+
+    print(f"✅ index.html generated for set: {set_name}")
 
 def handle_flashcard_creation(form):
     set_name = form["set_name"].strip()
@@ -133,44 +157,14 @@ def handle_flashcard_creation(form):
 
     with open(os.path.join(sets_dir, "data.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-    print("🛠 Generating practice.html...")
-    try:
-      generate_practice_html(set_name, data)
-    except Exception as e:
-      print(f"❌ Failed to generate practice.html: {e}")
-      
+       
     generate_flashcard_html(set_name, data)
     generate_practice_html(set_name, data)
     generate_test_html(set_name, data)
     generate_reading_html(set_name, data)
     generate_listening_html(set_name, data)
-   ## update_docs_index()
+    generate_set_index_html(set_name)
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
     return redirect(f"/output/{set_name}/index.html")
 
-def generate_set_index_html(set_name):
-    set_output_path = Path("docs/output") / set_name
-    if not set_output_path.exists():
-        print(f"❌ Cannot generate index — output folder not found for: {set_name}")
-        return
-
-    # Discover which mode pages exist
-    modes = [
-        f.stem for f in set_output_path.glob("*.html")
-        if f.stem in {"flashcards", "practice", "reading", "listening", "test"}
-    ]
-
-    # Load index template
-    env = Environment(loader=FileSystemLoader("templates"))
-    template = env.get_template("set_index.html")
-
-    # Render
-    rendered = template.render(set_name=set_name, modes=modes)
-
-    # Write to output/<set>/index.html
-    with open(set_output_path / "index.html", "w", encoding="utf-8") as f:
-        f.write(rendered)
-
-    print(f"✅ index.html generated for set: {set_name}")
