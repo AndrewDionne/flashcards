@@ -145,40 +145,32 @@ def handle_flashcard_creation(form):
     generate_test_html(set_name, data)
     generate_reading_html(set_name, data)
     generate_listening_html(set_name, data)
-    update_docs_homepage()
+   ## update_docs_index()
     commit_and_push_changes(f"✅ Add new set: {set_name}")
 
     return redirect(f"/output/{set_name}/index.html")
 
-def update_docs_homepage():
-    docs_path = Path("docs")
-    output_path = docs_path / "output"
-
-    if not output_path.exists():
-        print("⚠️ No sets in docs/output yet — skipping homepage generation.")
+def generate_set_index_html(set_name):
+    set_output_path = Path("docs/output") / set_name
+    if not set_output_path.exists():
+        print(f"❌ Cannot generate index — output folder not found for: {set_name}")
         return
 
-    # Discover sets by checking output folder
-    sets = sorted([d.name for d in output_path.iterdir() if d.is_dir()])
+    # Discover which mode pages exist
+    modes = [
+        f.stem for f in set_output_path.glob("*.html")
+        if f.stem in {"flashcards", "practice", "reading", "listening", "test"}
+    ]
 
-    # Detect which modes are present (e.g., flashcards.html, practice.html)
-    set_modes = {}
-    for s in sets:
-        mode_paths = list((output_path / s).glob("*.html"))
-        set_modes[s] = [
-            p.stem for p in mode_paths if p.stem in {"flashcards", "practice", "reading"}
-        ]
-
-    # Load Jinja2 template from templates/index.html
+    # Load index template
     env = Environment(loader=FileSystemLoader("templates"))
-    template = env.get_template("index.html")
+    template = env.get_template("set_index.html")
 
-    # Render it with discovered sets and modes
-    rendered_html = template.render(sets=sets, set_modes=set_modes)
+    # Render
+    rendered = template.render(set_name=set_name, modes=modes)
 
-    # Write to docs/index.html
-    docs_path.mkdir(exist_ok=True)
-    with open(docs_path / "index.html", "w", encoding="utf-8") as f:
-        f.write(rendered_html)
+    # Write to output/<set>/index.html
+    with open(set_output_path / "index.html", "w", encoding="utf-8") as f:
+        f.write(rendered)
 
-    print("✅ docs/index.html updated with links to all flashcard sets.")
+    print(f"✅ index.html generated for set: {set_name}")
