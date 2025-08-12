@@ -11,7 +11,6 @@ from .utils import (
     save_set_modes,
     get_all_sets,
     get_azure_token,
-    SETS_DIR
 )
 from .git_utils import commit_and_push_changes, delete_set_and_push
 
@@ -82,36 +81,12 @@ def init_routes(app):
         return send_file(docs_index)
 
     # === Set Management System ===
-    @app.route("/manage_sets")
+    @app.route("/manage_sets", methods=["GET"])
     def manage_sets():
-        set_dirs = [d for d in SETS_DIR.iterdir() if d.is_dir()]
-        sets = []
-
-        for d in set_dirs:
-            with open(d / "data.json", encoding="utf-8") as f:
-                data = json.load(f)
-
-            # Build a dict of mode -> boolean availability
-            modes_dict = {
-                "flashcards": Path(f"docs/output/{d.name}/flashcards.html").exists(),
-                "practice": Path(f"docs/output/{d.name}/practice.html").exists(),
-                "reading": Path(f"docs/output/{d.name}/reading.html").exists(),
-                "listening": Path(f"docs/output/{d.name}/listening.html").exists(),
-                "test": Path(f"docs/output/{d.name}/test.html").exists(),
-            }
-
-            # Convert the dict to a list of modes that are available
-            available_modes = [mode for mode, available in modes_dict.items() if available]
-
-            sets.append({
-                "name": d.name,
-                "count": len(data),
-                "modes": available_modes
-            })
-
-        return render_template("manage_sets.html", sets_data=sets) 
-
-
+        sets = get_all_sets()
+        set_modes = load_set_modes()
+        modes = ["flashcard", "practice", "reading"]
+        return render_template("manage_sets.html", sets=sets, set_modes=set_modes, modes=modes)
    
     @app.route("/create", methods=["GET", "POST"])
     def create_set_page():

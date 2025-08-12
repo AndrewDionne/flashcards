@@ -16,7 +16,6 @@
       text-align: center;
       margin-bottom: 20px;
     }
-
     form {
       background: white;
       padding: 20px;
@@ -25,7 +24,6 @@
       max-width: 700px;
       margin: 20px auto;
     }
-
     input[type="text"] {
       width: 70%;
       padding: 10px;
@@ -34,7 +32,6 @@
       border: 1px solid #ccc;
       margin-right: 10px;
     }
-
     button {
       background-color: #007bff;
       color: white;
@@ -44,55 +41,47 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     button:hover {
       opacity: 0.9;
     }
-
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .save-btn {
+      background-color: #28a745;
+      width: 100%;
+      margin-top: 20px;
+      font-weight: bold;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
     }
-
     th, td {
       padding: 12px;
       border-bottom: 1px solid #ddd;
       text-align: left;
     }
-
     th {
       background: #e9ecef;
     }
-
     .mode-checkboxes label {
       margin-right: 10px;
-    }
-
-    .delete-form {
-      display: inline;
-    }
-
-    .delete-form button {
-      background-color: #dc3545;
-    }
-
-    .save-btn {
-      margin-top: 20px;
-      width: 100%;
-      font-weight: bold;
-      background-color: #28a745;
     }
   </style>
 </head>
 <body>
   <h1>Manage Flashcard Sets</h1>
 
-  <!-- Create Set -->
-  <form method="POST" action="/create_set">
-    <input type="text" name="new_set_name" placeholder="New set name..." required />
-    <button type="submit">Create Set</button>
-  </form>
+  <div style="text-align: center; margin-bottom: 20px;">
+    <form method="GET" action="/create" style="display: inline;">
+      <button type="submit">➕ Create New Set</button>
+    </form>
+    <form method="GET" action="/" style="display: inline; margin-left: 10px;">
+      <button type="submit">🏠 Back to Home</button>
+    </form>
+  </div>
 
   <!-- Update Modes + Delete -->
   <form method="POST" action="/update_set_config">
@@ -107,7 +96,7 @@
       <tbody>
         {% for set in sets %}
         <tr>
-          <td>{{ set }}</td>
+          <td><strong>{{ set }}</strong></td>
           <td>
             <div class="mode-checkboxes">
               {% for mode in modes %}
@@ -120,12 +109,15 @@
             </div>
           </td>
           <td>
-            <form class="delete-form" method="POST" action="/delete_set" onsubmit="return confirm('Delete {{ set }}?')">
-              <input type="hidden" name="delete_set_name" value="{{ set }}">
-              <button type="submit">Delete</button>
-            </form>
+            <button type="submit"
+                    name="delete_set_name"
+                    value="{{ set }}"
+                    formaction="/delete_set"
+                    class="delete-btn"
+                    onclick="return confirm('Delete {{ set }}?')">
+              Delete
+            </button>
           </td>
-
         </tr>
         {% endfor %}
       </tbody>
