@@ -82,16 +82,14 @@ def init_routes(app):
         return send_file(docs_index)
 
     # === Set Management System ===
-    @app.route("/manage_sets")
+    @app.route("/manage_sets", methods=["GET"])
     def manage_sets():
         set_dirs = [d for d in SETS_DIR.iterdir() if d.is_dir()]
         sets = []
-
         for d in set_dirs:
             with open(d / "data.json", encoding="utf-8") as f:
                 data = json.load(f)
 
-            # Build a dict of mode -> boolean availability
             modes_dict = {
                 "flashcards": Path(f"docs/output/{d.name}/flashcards.html").exists(),
                 "practice": Path(f"docs/output/{d.name}/practice.html").exists(),
@@ -99,9 +97,7 @@ def init_routes(app):
                 "listening": Path(f"docs/output/{d.name}/listening.html").exists(),
                 "test": Path(f"docs/output/{d.name}/test.html").exists(),
             }
-
-            # Convert the dict to a list of modes that are available
-            available_modes = [mode for mode, available in modes_dict.items() if available]
+            available_modes = [m for m, active in modes_dict.items() if active]
 
             sets.append({
                 "name": d.name,
@@ -109,8 +105,40 @@ def init_routes(app):
                 "modes": available_modes
             })
 
-        return render_template("manage_sets.html", sets_data=sets) 
+        return render_template("manage_sets.html", sets_data=sets)
 
+    @app.route("/update_set_modes", methods=["POST"])
+    def update_set_modes():
+        # Read the submitted checkboxes
+        updated_modes = {}
+        for set_dir in SETS_DIR.iterdir():
+            if set_dir.is_dir():
+                selected_modes = []
+                for mode in ["flashcards", "practice", "reading", "listening", "test"]:
+                    if f"{set_dir.name}_{mode}" in request.form:
+                        selected_modes.append(mode)
+                updated_modes[set_dir.name] = selected_modes
+                # TODO: Save modes to a config file for this set
+
+        # Save per-set mode config (example: modes.json inside each set folder)
+        for set_name, modes in updated_modes.items():
+            modes_file = SETS_DIR / set_name / "modes.json"
+            with open(modes_file, "w", encoding="utf-8") as f:
+                json.dump(modes, f, ensure_ascii=False, indent=2)
+
+        flash("Modes updated successfully!", "success")
+        return redirect(url_for("manage_sets"))
+    
+    @app.route("/delete_sets", methods=["GET", "POST"])
+    def delete_sets():
+        if request.method == "POST":
+            for set_name in request.form.getlist("sets_to_delete"):
+                shutil.rmtree(SETS_DIR / set_name, ignore_errors=True)
+            flash("Selected sets deleted successfully!", "success")
+            return redirect(url_for("manage_sets"))
+
+        all_sets = [d.name for d in SETS_DIR.iterdir() if d.is_dir()]
+        return render_template("delete_sets.html", all_sets=all_sets)
 
    
     @app.route("/create", methods=["GET", "POST"])
@@ -138,14 +166,7 @@ def init_routes(app):
 
         return redirect(url_for("manage_sets"))
 
-    @app.route("/delete_set", methods=["POST"])
-    def delete_set():
-        name = request.form.get("delete_set_name")
-        if name:
-            shutil.rmtree(os.path.join("docs/sets", name), ignore_errors=True)
-            print(f"🗑️ Deleted set: {name}")
-        return redirect(url_for("manage_sets"))
-
+   
     @app.route("/update_set_config", methods=["POST"])
     def update_set_config():
         data = request.form.to_dict(flat=False)

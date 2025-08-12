@@ -52,21 +52,20 @@
       border: 1px solid #ccc;
     }
 
-    .set-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      padding: 0;
-      list-style: none;
-      margin: 1rem 0;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
     }
 
-    .set-card {
-      background: white;
+    th, td {
+      padding: 0.5rem;
       border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    th {
+      background: #f1f1f1;
     }
 
     .floating-btn {
@@ -76,18 +75,25 @@
       background: #28a745;
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      font-size: 2rem;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 1rem;
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
     }
   </style>
 </head>
 <body>
   <h1>Manage Flashcard Sets</h1>
 
+  <!-- Mode Tabs -->
   <div class="tabs">
     <button class="tab-button active" data-mode="all">All</button>
     <button class="tab-button" data-mode="flashcards">Flashcards</button>
@@ -97,56 +103,95 @@
     <button class="tab-button" data-mode="test">Test</button>
   </div>
 
+  <!-- Search -->
   <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Search sets..." />
   </div>
 
-  <ul id="setList" class="set-list">
-    <!-- Sets dynamically inserted here -->
-  </ul>
+  <!-- Sets Table -->
+  <table id="setsTable">
+    <thead>
+      <tr>
+        <th>Set Name</th>
+        <th>Card Count</th>
+        <th>Flashcards</th>
+        <th>Practice</th>
+        <th>Reading</th>
+        <th>Listening</th>
+        <th>Test</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for set in sets %}
+      <tr data-name="{{ set.name }}" data-modes="{{ set.modes | join(',') }}">
+        <td>{{ set.name }}</td>
+        <td>{{ set.count }}</td>
+        {% for mode in ["flashcards", "practice", "reading", "listening", "test"] %}
+        <td>
+          <input type="checkbox" data-set="{{ set.name }}" data-mode="{{ mode }}"
+                 {% if mode in set.modes %}checked{% endif %}>
+        </td>
+        {% endfor %}
+        <td>
+          <form method="POST" action="/delete_set/{{ set.name }}">
+            <button type="submit" class="delete-btn">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-  <a href="/create"><button class="floating-btn">+</button></a>
+  <!-- Save Changes -->
+  <button id="saveChanges">Save Changes</button>
+
+  <!-- Create Button -->
+  <a href="/create"><button class="floating-btn">＋ NEW CARD SET</button></a>
 
   <script>
-    const allSets = {{ sets_data | tojson }};
+    // Filtering by mode & search
+    function filterTable() {
+      const activeMode = document.querySelector(".tab-button.active").dataset.mode;
+      const query = document.getElementById("searchInput").value.toLowerCase();
 
-    function renderSets(mode = "all", query = "") {
-      const list = document.getElementById("setList");
-      list.innerHTML = "";
-
-      const filtered = allSets.filter(set => {
-        const matchesMode = mode === "all" || set.modes.includes(mode);
-        const matchesQuery = set.name.toLowerCase().includes(query.toLowerCase());
-        return matchesMode && matchesQuery;
+      document.querySelectorAll("#setsTable tbody tr").forEach(row => {
+        const setName = row.dataset.name.toLowerCase();
+        const modes = row.dataset.modes.split(",");
+        const matchesMode = activeMode === "all" || modes.includes(activeMode);
+        const matchesQuery = setName.includes(query);
+        row.style.display = (matchesMode && matchesQuery) ? "" : "none";
       });
-
-      if (filtered.length === 0) {
-        list.innerHTML = '<li>No matching sets found.</li>';
-        return;
-      }
-
-      for (const set of filtered) {
-        const item = document.createElement("li");
-        item.className = "set-card";
-        item.textContent = set.name;
-        list.appendChild(item);
-      }
     }
 
     document.querySelectorAll(".tab-button").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        renderSets(btn.dataset.mode, document.getElementById("searchInput").value);
+        filterTable();
       });
     });
 
-    document.getElementById("searchInput").addEventListener("input", e => {
-      const activeMode = document.querySelector(".tab-button.active").dataset.mode;
-      renderSets(activeMode, e.target.value);
-    });
+    document.getElementById("searchInput").addEventListener("input", filterTable);
 
-    renderSets();
+    // Save Changes
+    document.getElementById("saveChanges").addEventListener("click", () => {
+      const updates = {};
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const setName = cb.dataset.set;
+        const mode = cb.dataset.mode;
+        if (!updates[setName]) updates[setName] = [];
+        if (cb.checked) updates[setName].push(mode);
+      });
+
+      fetch("/update_set_modes", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(updates)
+      })
+      .then(res => res.json())
+      .then(() => alert("✅ Modes updated successfully!"));
+    });
   </script>
 </body>
 </html>

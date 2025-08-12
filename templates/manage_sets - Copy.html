@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Flashcard Sets</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8f9fa;
+      padding: 2rem 1rem 6rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+      background: #e0e0e0;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .tab-button.active {
+      background: #007bff;
+      color: white;
+    }
+
+    .search-bar {
+      margin-bottom: 1rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .set-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      padding: 0;
+      list-style: none;
+      margin: 1rem 0;
+    }
+
+    .set-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <h1>Manage Flashcard Sets</h1>
+
+  <div class="tabs">
+    <button class="tab-button active" data-mode="all">All</button>
+    <button class="tab-button" data-mode="flashcards">Flashcards</button>
+    <button class="tab-button" data-mode="practice">Practice</button>
+    <button class="tab-button" data-mode="reading">Reading</button>
+    <button class="tab-button" data-mode="listening">Listening</button>
+    <button class="tab-button" data-mode="test">Test</button>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search sets..." />
+  </div>
+
+  <ul id="setList" class="set-list">
+    <!-- Sets dynamically inserted here -->
+  </ul>
+
+  <a href="/create"><button class="floating-btn">+</button></a>
+
+  <script>
+    const allSets = {{ sets_data | tojson }};
+
+    function renderSets(mode = "all", query = "") {
+      const list = document.getElementById("setList");
+      list.innerHTML = "";
+
+      const filtered = allSets.filter(set => {
+        const matchesMode = mode === "all" || set.modes.includes(mode);
+        const matchesQuery = set.name.toLowerCase().includes(query.toLowerCase());
+        return matchesMode && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<li>No matching sets found.</li>';
+        return;
+      }
+
+      for (const set of filtered) {
+        const item = document.createElement("li");
+        item.className = "set-card";
+        item.textContent = set.name;
+        list.appendChild(item);
+      }
+    }
+
+    document.querySelectorAll(".tab-button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderSets(btn.dataset.mode, document.getElementById("searchInput").value);
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const activeMode = document.querySelector(".tab-button.active").dataset.mode;
+      renderSets(activeMode, e.target.value);
+    });
+
+    renderSets();
+  </script>
+</body>
+</html>
