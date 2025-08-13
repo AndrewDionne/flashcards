@@ -1,27 +1,24 @@
 {
-  "11-2": [
-    "flashcards",
-    "reading",
-    "test"
+  "flashcards": [
+    "11-2",
+    "12-1"
   ],
-  "11-3": [
-    "practice",
-    "listening",
-    "test"
+  "practice": [
+    "11-3",
+    "25-16"
   ],
-  "12-1": [
-    "flashcards",
-    "reading",
-    "listening",
-    "test"
+  "reading": [
+    "11-2",
+    "12-1"
   ],
-  "25-16": [
-    "practice",
-    "test"
+  "listening": [
+    "11-3",
+    "25-16"
   ],
-  "flashcards": [],
-  "practice": [],
-  "reading": [],
-  "listening": [],
-  "test": []
+  "test": [
+    "11-2",
+    "11-3",
+    "12-1",
+    "25-16"
+  ]
 }
