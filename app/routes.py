@@ -56,7 +56,8 @@ def init_routes(app):
     # === Static/Output File Serving ===
     @app.route("/custom_static/<path:filename>")
     def serve_static_file(filename):
-        full_path = Path("docs/static") / filename
+        project_root = Path(__file__).resolve().parent.parent
+        full_path = project_root / "docs" / "static" / filename
         if not full_path.exists():
             print("❌ Audio file not found:", full_path)
             return "Audio file not found", 404
@@ -64,7 +65,8 @@ def init_routes(app):
 
     @app.route("/output/<path:filename>")
     def serve_output_file(filename):
-        full_path = Path("docs/output") / filename
+        project_root = Path(__file__).resolve().parent.parent
+        full_path = project_root / "docs" / "output" / filename  # don't wrap in Path() again
         if not full_path.exists():
             print("❌ File not found:", full_path)
             return "File not found", 404
