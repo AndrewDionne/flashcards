@@ -1,5 +1,27 @@
 {
+  "11-2": [
+    "flashcards",
+    "reading",
+    "test"
+  ],
+  "11-3": [
+    "practice",
+    "listening",
+    "test"
+  ],
+  "12-1": [
+    "flashcards",
+    "reading",
+    "test"
+  ],
   "25-16": [
-    "flashcard"
-  ]
+    "practice",
+    "listening",
+    "test"
+  ],
+  "flashcards": [],
+  "practice": [],
+  "reading": [],
+  "listening": [],
+  "test": []
 }

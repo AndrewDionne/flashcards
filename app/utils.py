@@ -1,144 +1,161 @@
-import os, re, json, shutil
-from flask import jsonify, redirect, render_template, url_for
-from gtts import gTTS
+import os
+import re
+import json
+import shutil
 import requests
 from pathlib import Path
+from flask import jsonify, redirect, url_for
+from gtts import gTTS
+from jinja2 import Environment, FileSystemLoader
+
 from .git_utils import commit_and_push_changes
 from .practice import generate_practice_html
 from .flashcards import generate_flashcard_html
 from .reading import generate_reading_html
 from .listening import generate_listening_html
 from .test import generate_test_html
-from flask import render_template
-from jinja2 import Environment, FileSystemLoader
-SETS_DIR = Path("docs/sets")
 
-def sanitize_filename(text):
-    return re.sub(r'[^a-zA-Z0-9]', '_', text)
+# === Constants ===
+SETS_DIR = Path("docs/sets")
+MODES_FILE = SETS_DIR / "mode_config.json"
+MODES = ["flashcards", "practice", "reading", "listening", "test"]
+
+# === Utility ===
+def sanitize_filename(text: str) -> str:
+    """Return a filesystem-safe filename."""
+    return re.sub(r"[^a-zA-Z0-9]", "_", text)
 
 def open_browser():
+    """Open local dev server in a browser."""
     import webbrowser, threading
     threading.Timer(1.5, lambda: webbrowser.open_new("http://127.0.0.1:5000")).start()
 
+# === Homepage Export ===
 def export_homepage_static():
+    """Re-render homepage index.html for GitHub Pages."""
     env = Environment(loader=FileSystemLoader("templates"))
     template = env.get_template("index.html")
-    
     sets = get_all_sets()
     set_modes = load_set_modes()
-    
     rendered = template.render(sets=sets, set_modes=set_modes)
-    with open("docs/index.html", "w", encoding="utf-8") as f:
-        f.write(rendered)
+    (Path("docs") / "index.html").write_text(rendered, encoding="utf-8")
 
-def load_sets_with_counts():
-    sets_root = Path("docs/output")
-    static_root = Path("docs/static")
+# === Set Loading ===
+def get_all_sets():
+    """List all set folder names in docs/sets."""
+    return sorted([s.name for s in SETS_DIR.iterdir() if s.is_dir()])
+
+def load_set_modes():
+    """Load mode configuration from file, or return default."""
+    if MODES_FILE.exists():
+        with open(MODES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {m: [] for m in MODES}
+
+def save_set_modes(modes: dict):
+    """Save mode configuration, ensuring all modes exist."""
+    for mode in MODES:
+        modes.setdefault(mode, [])
+    with open(MODES_FILE, "w", encoding="utf-8") as f:
+        json.dump(modes, f, ensure_ascii=False, indent=2)
+
+def load_sets_for_mode(mode: str):
+    """Return sets assigned to a given mode, with card counts."""
+    mode_config = load_set_modes()
+    set_names = mode_config.get(mode, [])
     sets = []
-
-    for output_set in sorted(sets_root.iterdir()) if sets_root.exists() else []:
-        if output_set.is_dir():
-            audio_path = static_root / output_set.name / "audio"
-            count = len(list(audio_path.glob("*.mp3"))) if audio_path.exists() else 0
-            sets.append({"name": output_set.name, "count": count})
-
+    for name in set_names:
+        data_path = SETS_DIR / name / "data.json"
+        if data_path.exists():
+            with open(data_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            sets.append({"name": name, "count": len(data)})
     return sets
 
-def load_sets_for_mode(mode):
-    sets = load_sets_with_counts()
-    set_modes = load_set_modes()
-    return [s for s in sets if mode in set_modes.get(s["name"], [])]
-
+# === Azure Speech ===
 def get_azure_token():
+    """Request a temporary Azure speech token."""
     AZURE_SPEECH_KEY = os.environ.get("AZURE_SPEECH_KEY")
     AZURE_REGION = os.environ.get("AZURE_REGION", "canadaeast")
-
     if not AZURE_SPEECH_KEY:
         return jsonify({"error": "AZURE_SPEECH_KEY missing"}), 500
 
     url = f"https://{AZURE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
     headers = {"Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY, "Content-Length": "0"}
-
     try:
-        response = requests.post(url, headers=headers)
-        response.raise_for_status()
-        return jsonify({"token": response.text, "region": AZURE_REGION})
+        res = requests.post(url, headers=headers)
+        res.raise_for_status()
+        return jsonify({"token": res.text, "region": AZURE_REGION})
     except requests.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
-def get_all_sets():
-    sets_root = SETS_DIR
-    return sorted([s.name for s in SETS_DIR.iterdir() if s.is_dir()])
+# === Set Creation / Deletion ===
+def handle_flashcard_creation(form):
+    """Create new set from form data and generate HTML/audio."""
+    set_name = form.get("set_name", "").strip()
+    json_input = form.get("json_input", "").strip()
 
+    # Safety checks
+    if not set_name:
+        return "<h2 style='color:red;'>❌ Set name is required.</h2>", 400
+    if (SETS_DIR / set_name).exists():
+        return f"<h2 style='color:red;'>❌ Set '{set_name}' already exists.</h2>", 400
 
-def load_set_modes():
-    config_path = SETS_DIR / "mode_config.json"
-    return json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
+    # Parse JSON
+    try:
+        data = json.loads(json_input)
+    except json.JSONDecodeError:
+        return "<h2 style='color:red;'>❌ Invalid JSON input format.</h2>", 400
 
-def save_set_modes(data):
-    config_path = SETS_DIR / "mode_config.json"
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    # Validate entries
+    for entry in data:
+        if not all(k in entry for k in ("phrase", "pronunciation", "meaning")):
+            return "<h2 style='color:red;'>❌ Each entry must have 'phrase', 'pronunciation', and 'meaning'.</h2>", 400
 
-def delete_set(set_name):
-    from .git_utils import commit_and_push_changes
-
+    # Prepare folders
+    audio_dir = Path("docs/static") / set_name / "audio"
     output_dir = Path("docs/output") / set_name
-    static_dir = Path("docs/static") / set_name
-    sets_dir = SETS_DIR / set_name
+    set_dir = SETS_DIR / set_name
+    for path in (audio_dir, output_dir, set_dir):
+        path.mkdir(parents=True, exist_ok=True)
 
-    for path in [output_dir, static_dir, sets_dir]:
+    # Generate audio
+    for i, entry in enumerate(data):
+        phrase = entry["phrase"]
+        filename = f"{i}_{sanitize_filename(phrase)}.mp3"
+        filepath = audio_dir / filename
+        if not filepath.exists():
+            gTTS(text=phrase, lang="pl").save(filepath)
+
+    # Save JSON data
+    with open(set_dir / "data.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    # Generate HTML for all modes
+    generate_flashcard_html(set_name, data)
+    generate_practice_html(set_name, data)
+    generate_test_html(set_name, data)
+    generate_reading_html(set_name, data)
+    generate_listening_html(set_name, data)
+
+    commit_and_push_changes(f"✅ Add new set: {set_name}")
+    return redirect(url_for("manage_sets"))
+
+def delete_set(set_name: str):
+    """Delete set folders from all locations."""
+    for path in [
+        Path("docs/output") / set_name,
+        Path("docs/static") / set_name,
+        SETS_DIR / set_name
+    ]:
         if path.exists():
             shutil.rmtree(path)
             print(f"🧹 Deleted folder: {path}")
         else:
             print(f"⚠️ Folder not found: {path}")
 
-    update_docs_homepage()
     commit_and_push_changes(f"🗑️ Deleted set: {set_name}")
     print(f"✅ Deleted set: {set_name}")
 
-def delete_set_and_push(set_name):
+def delete_set_and_push(set_name: str):
     delete_set(set_name)
-    # Sample HTML for a mode selection landing page (for a given set)
-
-def handle_flashcard_creation(form):
-    set_name = form["set_name"].strip()
-    json_input = form["json_input"].strip()
-    try:
-        data = json.loads(json_input)
-    except json.JSONDecodeError:
-        return f"<h2 style='color:red;'>❌ Invalid JSON input format.</h2>", 400
-
-    for entry in data:
-        if not all(k in entry for k in ("phrase", "pronunciation", "meaning")):
-            return f"<h2 style='color:red;'>❌ Each entry must have 'phrase', 'pronunciation', and 'meaning'.</h2>", 400
-
-    audio_dir = os.path.join("docs", "static", set_name, "audio")
-    output_dir = os.path.join("docs", "output", set_name)
-    sets_dir = SETS_DIR / set_name
-    sets_dir.mkdir(parents=True, exist_ok=True)
-    os.makedirs(audio_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
-    
-
-    for i, entry in enumerate(data):
-        phrase = entry["phrase"]
-        filename = f"{i}_{sanitize_filename(phrase)}.mp3"
-        filepath = os.path.join(audio_dir, filename)
-        if not os.path.exists(filepath):
-            tts = gTTS(text=phrase, lang="pl")
-            tts.save(filepath)
-
-    with open(os.path.join(sets_dir, "data.json"), "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-       
-    generate_flashcard_html(set_name, data)
-    generate_practice_html(set_name, data)
-    generate_test_html(set_name, data)
-    generate_reading_html(set_name, data)
-    generate_listening_html(set_name, data)
-    commit_and_push_changes(f"✅ Add new set: {set_name}")
-
-    return redirect(url_for("manage_sets"))
-
