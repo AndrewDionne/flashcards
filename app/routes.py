@@ -1,15 +1,18 @@
 from flask import render_template, request, redirect, send_file, jsonify, url_for
 import os, json, shutil
 from pathlib import Path
-from .utils import (
-    handle_flashcard_creation,
+from .sets_utils import (
+    sanitize_filename,
     load_sets_for_mode,
     load_set_modes,
     save_set_modes,
     get_all_sets,
-    get_azure_token,
-    SETS_DIR,
-    MODES
+    SETS_DIR
+)
+from .utils import (
+    generate_flashcard_html,
+    handle_flashcard_creation,
+    get_azure_token
 )
 from .git_utils import commit_and_push_changes
 
@@ -82,21 +85,14 @@ def init_routes(app):
     # === Set Management System ===
     @app.route("/manage_sets", methods=["GET"])
     def manage_sets():
-        mode_config = load_set_modes()
-        sets = []
-        for set_name in get_all_sets():
-            data_file = SETS_DIR / set_name / "data.json"
-            if data_file.exists():
-                with open(data_file, encoding="utf-8") as f:
-                    data = json.load(f)
-                # Find which modes this set is assigned to
-                assigned_modes = [m for m in MODES if set_name in mode_config.get(m, [])]
-                sets.append({
-                    "name": set_name,
-                    "count": len(data),
-                    "modes": assigned_modes
-                })
-        return render_template("manage_sets.html", sets=sets, sets_data=sets)
+        # Get all sets with counts and modes from sets_utils
+        sets = get_all_sets()  # already returns [{"name": ..., "count": ..., "modes": [...]}, ...]
+
+        return render_template(
+            "manage_sets.html",
+            sets=sets,
+            sets_data=sets  # if template still uses sets_data
+    )
 
     @app.route("/update_set_modes", methods=["POST"])
     def update_set_modes():

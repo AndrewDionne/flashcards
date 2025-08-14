@@ -15,15 +15,13 @@ from .reading import generate_reading_html
 from .listening import generate_listening_html
 from .test import generate_test_html
 
-# === Constants ===
-SETS_DIR = Path("docs/sets")
-MODES_FILE = SETS_DIR / "mode_config.json"
-MODES = ["flashcards", "practice", "reading", "listening", "test"]
+from .sets_utils import (
+    SETS_DIR, sanitize_filename,
+    get_all_sets, load_set_modes, load_sets_for_mode
+)
+
 
 # === Utility ===
-def sanitize_filename(text: str) -> str:
-    """Return a filesystem-safe filename."""
-    return re.sub(r"[^a-zA-Z0-9]", "_", text)
 
 def open_browser():
     """Open local dev server in a browser."""
@@ -39,38 +37,6 @@ def export_homepage_static():
     set_modes = load_set_modes()
     rendered = template.render(sets=sets, set_modes=set_modes)
     (Path("docs") / "index.html").write_text(rendered, encoding="utf-8")
-
-# === Set Loading ===
-def get_all_sets():
-    """List all set folder names in docs/sets."""
-    return sorted([s.name for s in SETS_DIR.iterdir() if s.is_dir()])
-
-def load_set_modes():
-    """Load mode configuration from file, or return default."""
-    if MODES_FILE.exists():
-        with open(MODES_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {m: [] for m in MODES}
-
-def save_set_modes(modes: dict):
-    """Save mode configuration, ensuring all modes exist."""
-    for mode in MODES:
-        modes.setdefault(mode, [])
-    with open(MODES_FILE, "w", encoding="utf-8") as f:
-        json.dump(modes, f, ensure_ascii=False, indent=2)
-
-def load_sets_for_mode(mode: str):
-    """Return sets assigned to a given mode, with card counts."""
-    mode_config = load_set_modes()
-    set_names = mode_config.get(mode, [])
-    sets = []
-    for name in set_names:
-        data_path = SETS_DIR / name / "data.json"
-        if data_path.exists():
-            with open(data_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            sets.append({"name": name, "count": len(data)})
-    return sets
 
 # === Azure Speech ===
 def get_azure_token():
