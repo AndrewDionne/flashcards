@@ -129,7 +129,8 @@ def init_routes(app):
     @app.route("/create", methods=["GET", "POST"])
     def create_set_page():
         if request.method == "POST":
-            return handle_flashcard_creation(request.form)
+            handle_flashcard_creation(request.form)
+            return redirect(url_for("manage_sets"))
 
         set_name = request.args.get("set_name", "")
         return render_template("create.html", set_name=set_name)
