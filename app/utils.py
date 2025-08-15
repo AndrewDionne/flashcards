@@ -9,11 +9,13 @@ from gtts import gTTS
 from jinja2 import Environment, FileSystemLoader
 
 from .git_utils import commit_and_push_changes
-from .practice import generate_practice_html
-from .flashcards import generate_flashcard_html
-from .reading import generate_reading_html
-from .listening import generate_listening_html
-from .test import generate_test_html
+from .modes import (
+    generate_practice_html,
+    generate_flashcard_html,
+    generate_reading_html,
+    generate_listening_html,
+    generate_test_html
+)
 
 from .sets_utils import (
     SETS_DIR, sanitize_filename,
@@ -97,16 +99,7 @@ def handle_flashcard_creation(form):
     with open(set_dir / "data.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    # Generate HTML for all modes
-    generate_flashcard_html(set_name, data)
-    generate_practice_html(set_name, data)
-    generate_test_html(set_name, data)
-    generate_reading_html(set_name, data)
-    generate_listening_html(set_name, data)
-
-    commit_and_push_changes(f"✅ Add new set: {set_name}")
-    return redirect(url_for("manage_sets"))
-
+   
 def delete_set(set_name: str):
     """Delete set folders from all locations."""
     for path in [

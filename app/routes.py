@@ -1,6 +1,13 @@
 from flask import render_template, request, redirect, send_file, jsonify, url_for
 import os, json, shutil
 from pathlib import Path
+from .modes import (
+    generate_flashcard_html,
+    generate_practice_html,
+    generate_reading_html,
+    generate_listening_html,
+    generate_test_html
+)
 from .sets_utils import (
     sanitize_filename,
     load_sets_for_mode,
